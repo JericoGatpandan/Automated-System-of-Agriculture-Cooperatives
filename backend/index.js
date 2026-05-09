@@ -11,6 +11,8 @@ import authRoutes from "./routes/auth.routes.js";
 import cooperativeRoutes from "./routes/cooperative.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import farmerRoutes from "./routes/farmer.routes.js";
+import orderRoutes from "./routes/order.routes.js";
+import assignmentRoutes from "./routes/assignment.routes.js";
 
 const app = express();
 const port = PORT || 8800;
@@ -23,6 +25,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cooperatives", cooperativeRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/farmers", farmerRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 app.get("/", (req, res) => {
   res.send("ASAC System Backend is running!");

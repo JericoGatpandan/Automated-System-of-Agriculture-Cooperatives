@@ -82,15 +82,24 @@ Update this file after every meaningful implementation change.
   - Installed shadcn `Checkbox` component.
   - Enabled Farmer Registry nav items in sidebar for Admin and Officer.
   - See `context/feature-specs/08-farmer-registry.md` for details.
+- **Implemented Order & Transaction Management**:
+  - Backend: `order.routes.js` (5 endpoints: list, detail, create, update, cancel) and `assignment.routes.js` (7 endpoints: officer list, detail, create/delete assignment, create/update/delete fulfillment).
+  - Automatic status cascading: Order status auto-updates (pending → assigned → inProgress → consolidated) and assignment status auto-updates (pending → matched → ready) based on downstream entity changes.
+  - Admin: Order list with search + status filter, create/edit form, order detail page with cooperative assignment management (assign dialog, remove dialog, quantity progress bar).
+  - Officer: Assignment list (scoped to own coop), assignment detail with farmer fulfillment management (assign farmer dialog, inline status update via Select, remove fulfillment dialog, quantity progress bar).
+  - Installed shadcn `Progress` component. `Select` and `Textarea` already existed.
+  - Enabled "Order Management" (Admin) and "Assignments" (Officer) nav items in sidebar.
+  - Destructive operations (cancel order, remove assignment, remove fulfillment) use confirmation dialogs per `ui-context.md`.
+  - See `context/feature-specs/09-order-management.md` for details.
 
 ## In Progress
 
-- Order Management module (next feature unit).
+- Delivery Management module (next feature unit).
 
 ## Next Up
 
-- Implement Buyer Order intake (FACCS Admin).
-- Implement Cooperative Assignment and Farmer Fulfillment.
+- Implement Delivery Management (Admin manages deliveries, triggers accounting).
+- Implement FarmLedger Accounting module.
 
 ## Open Questions
 

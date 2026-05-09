@@ -50,7 +50,7 @@ const ADMIN_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/admin", exact: true },
   { label: "Cooperative Registry", icon: Building2, route: "/admin/cooperatives" },
   { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
-  { label: "Order Management", icon: ShoppingCart, route: "/admin/orders", disabled: true },
+  { label: "Order Management", icon: ShoppingCart, route: "/admin/orders" },
   { label: "Deliveries", icon: Truck, route: "/admin/deliveries", disabled: true },
   { label: "Federation Overview", icon: BarChart3, route: "/admin/overview", disabled: true },
 ];
@@ -58,7 +58,7 @@ const ADMIN_NAV = [
 const OFFICER_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/coop", exact: true },
   { label: "Farmer Registry", icon: Users, route: "/coop/farmers" },
-  { label: "Assignments", icon: ClipboardList, route: "/coop/assignments", disabled: true },
+  { label: "Assignments", icon: ClipboardList, route: "/coop/assignments" },
   { label: "Loan Management", icon: Wallet, route: "/coop/loans", disabled: true },
   { label: "Farmer Ledger", icon: BookOpen, route: "/coop/ledger", disabled: true },
   { label: "Statements", icon: FileText, route: "/coop/statements", disabled: true },

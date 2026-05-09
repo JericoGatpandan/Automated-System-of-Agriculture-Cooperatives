@@ -15,6 +15,11 @@ import { AdminFarmerRegistry } from "./pages/admin/AdminFarmerRegistry"
 import { CoopFarmerRegistry } from "./pages/coop/CoopFarmerRegistry"
 import { FarmerForm } from "./pages/coop/FarmerForm"
 import { FarmerDetail } from "./pages/coop/FarmerDetail"
+import { OrderList } from "./pages/admin/OrderList"
+import { OrderForm } from "./pages/admin/OrderForm"
+import { OrderDetail } from "./pages/admin/OrderDetail"
+import { CoopAssignments } from "./pages/coop/CoopAssignments"
+import { AssignmentDetail } from "./pages/coop/AssignmentDetail"
 
 function App() {
   return (
@@ -36,6 +41,10 @@ function App() {
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="farmers" element={<AdminFarmerRegistry />} />
                     <Route path="farmers/:id" element={<FarmerDetail />} />
+                    <Route path="orders" element={<OrderList />} />
+                    <Route path="orders/new" element={<OrderForm />} />
+                    <Route path="orders/:id" element={<OrderDetail />} />
+                    <Route path="orders/:id/edit" element={<OrderForm />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
@@ -53,6 +62,8 @@ function App() {
                     <Route path="farmers/new" element={<FarmerForm />} />
                     <Route path="farmers/:id" element={<FarmerDetail />} />
                     <Route path="farmers/:id/edit" element={<FarmerForm />} />
+                    <Route path="assignments" element={<CoopAssignments />} />
+                    <Route path="assignments/:id" element={<AssignmentDetail />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
