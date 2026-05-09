@@ -27,6 +27,12 @@ Update this file after every meaningful implementation change.
     - Updated typography to use Poppins (UI) and IBM Plex Mono (Code/Mono).
     - Verified build with successful `npm run build`.
     - Integrated specific ASAC variables inside `App.css`.
+- **Implemented Role-Based Authentication**:
+    - Created two-column UI layout for `/login` and `/register` using `shadcn/ui`.
+    - Setup React Router with `ProtectedRoute` for Role-based access control.
+    - Created placeholder dashboards for Admin, Coop Officer, and Farmer.
+    - Setup `AuthContext` to persist tokens using `localStorage`.
+    - Created temporary mock Express backend to facilitate frontend testing while DB migrations are pending.
 
 ## In Progress
 
@@ -34,7 +40,6 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-- Implement Role-Based Authentication (JWT + Bcrypt).
 - Implement Buyer Order intake (FACCS Admin).
 - Implement Cooperative Assignment and Farmer Fulfillment.
 
