@@ -1,23 +1,38 @@
-import mysql from "mysql2";
+import mysql from "mysql2/promise";
 
-import {
-  DB_HOST,
-  DB_USER,
-  DB_PASSWORD,
-  DB_DATABASE,
-  PORT,
-} from "./env.config.js";
+import { DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE } from "./env.config.js";
 
-export const connection = mysql.createConnection({
-  host: DB_HOST,
-  port: DB_PORT,
-  user: DB_USER,
-  password: DB_PASSWORD,
-  database: DB_DATABASE,
-});
+let pool;
 
-connection.connect((err) => {
-  if (err) return console.error(err.message);
+function getPool() {
+  if (!pool) {
+    pool = mysql.createPool({
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_DATABASE,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+  }
+  return pool;
+}
 
-  console.log("Connected to the MySQL server.");
-});
+async function testConnection() {
+  try {
+    const connection = await getPool().getConnection();
+    await connection.ping();
+    connection.release();
+    console.log("Connected to the MySQL server.");
+  } catch (err) {
+    console.error("Error connecting to the MySQL server:", err.message);
+  }
+}
+
+async function query(sql, params = []) {
+  const [rows] = await getPool().execute(sql, params);
+  return rows;
+}
+
+export { getPool, query, testConnection };

@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Login } from "./pages/auth/Login"
 import { Register } from "./pages/auth/Register"
 import { AdminDashboard } from "./pages/admin/AdminDashboard"
+import { CooperativeRegistry } from "./pages/admin/CooperativeRegistry"
 import { CoopDashboard } from "./pages/coop/CoopDashboard"
 import { FarmerDashboard } from "./pages/farmer/FarmerDashboard"
 
@@ -20,6 +21,11 @@ function App() {
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={["Admin"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/cooperatives" element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <CooperativeRegistry />
             </ProtectedRoute>
           } />
           

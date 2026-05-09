@@ -2,24 +2,87 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    /**
-     * Add seed commands here.
-     *
-     * Example:
-     * await queryInterface.bulkInsert('People', [{
-     *   name: 'John Doe',
-     *   isBetaMember: false
-     * }], {});
-    */
+  async up(queryInterface, Sequelize) {
+    await queryInterface.bulkInsert('BuyerOrders', [
+      {
+        orderID: 1,
+        managedBy: 1,
+        buyerName: 'NFA Regional Office',
+        buyerCompany: 'National Food Authority',
+        buyerContact: '9171110001',
+        cropTypeID: 1,
+        requestedQuantity: 2000,
+        urgencyLevel: 'high',
+        orderDate: new Date('2024-09-01'),
+        status: 'delivered',
+        notes: 'Urgent rice procurement',
+        createdAt: new Date('2024-09-01'),
+        updatedAt: new Date('2024-09-22'),
+      },
+      {
+        orderID: 2,
+        managedBy: 1,
+        buyerName: 'PhilRice',
+        buyerCompany: 'Philippine Rice Research Inst.',
+        buyerContact: '9172220002',
+        cropTypeID: 1,
+        requestedQuantity: 1000,
+        urgencyLevel: 'normal',
+        orderDate: new Date('2024-09-05'),
+        status: 'assigned',
+        notes: 'Research-grade rice',
+        createdAt: new Date('2024-09-05'),
+        updatedAt: new Date('2024-09-06'),
+      },
+      {
+        orderID: 3,
+        managedBy: 1,
+        buyerName: 'Bigg\'s Inc.',
+        buyerCompany: 'Bigg\'s Diner Chain',
+        buyerContact: '9173330003',
+        cropTypeID: 4,
+        requestedQuantity: 300,
+        urgencyLevel: 'normal',
+        orderDate: new Date('2024-09-10'),
+        status: 'pending',
+        notes: 'Fresh vegetables',
+        createdAt: new Date('2024-09-10'),
+        updatedAt: new Date('2024-09-11'),
+      },
+      {
+        orderID: 4,
+        managedBy: 1,
+        buyerName: 'Camsur Provincial Gov.',
+        buyerCompany: 'Provincial Agriculture Office',
+        buyerContact: '9174440004',
+        cropTypeID: 2,
+        requestedQuantity: 500,
+        urgencyLevel: 'high',
+        orderDate: new Date('2024-09-12'),
+        status: 'consolidated',
+        notes: 'Corn for seedling dist.',
+        createdAt: new Date('2024-09-12'),
+        updatedAt: new Date('2024-09-18'),
+      },
+      {
+        orderID: 5,
+        managedBy: 1,
+        buyerName: 'Kadiwa ng Pangulo',
+        buyerCompany: 'DA-KADIWA Program',
+        buyerContact: '9175550005',
+        cropTypeID: 3,
+        requestedQuantity: 1500,
+        urgencyLevel: 'normal',
+        orderDate: new Date('2024-09-15'),
+        status: 'pending',
+        notes: 'Coconut products',
+        createdAt: new Date('2024-09-15'),
+        updatedAt: new Date('2024-09-15'),
+      },
+    ]);
   },
 
-  async down (queryInterface, Sequelize) {
-    /**
-     * Add commands to revert seed here.
-     *
-     * Example:
-     * await queryInterface.bulkDelete('People', null, {});
-     */
-  }
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('BuyerOrders', null, {});
+  },
 };

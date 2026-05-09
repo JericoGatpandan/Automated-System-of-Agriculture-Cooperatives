@@ -4,7 +4,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- **Research & Strategy**: Project setup and initial context refinement.
+- **Module Implementation**: Building core modules against the ASAC spec.
 
 ## Current Goal
 
@@ -37,13 +37,29 @@ Update this file after every meaningful implementation change.
   - Added model associations per cardinalities.
   - Updated migrations to use domain `*ID` primary keys and added foreign key constraints.
   - Removed duplicate `createdAt` definitions in affected migrations.
+- **Database Seeding**:
+  - Created 16 seeders with 98 total records across all tables.
+  - Expanded Users from 5 → 11 to satisfy FK references.
+  - Derived FarmerAccount, SalesRecord, FeeRecord, LoanRecord, PrintedStatement data from spec rules.
+  - Created `config/config.json` and CJS override package.json files for sequelize-cli compatibility.
+- **Replaced Mock Auth with Real DB Auth**:
+  - `POST /api/auth/login` — bcryptjs validation against Users table, JWT with mapped role names.
+  - `GET /api/auth/me` — JWT-protected user fetch.
+  - Auth middleware: `authenticate` (JWT verify) + `authorize(...roles)` (RBAC).
+  - Removed all mock endpoints from `index.js`.
+- **Implemented Cooperative Registry (CRUD)**:
+  - Backend: 5 REST endpoints on `/api/cooperatives` (Admin-only, transactional create, soft-delete).
+  - Frontend: Full registry page at `/admin/cooperatives` with shadcn Table, Dialog forms, destructive delete confirmation modal.
+  - Redesigned Admin Dashboard as a module navigation grid.
+  - See `context/feature-specs/05-cooperative-registry.md` for details.
 
 ## In Progress
 
-- Refining `context/` folder to ensure consistency with the Project Specification.
+- Farmer Registry module (next feature unit).
 
 ## Next Up
 
+- Implement Farmer Registry (Coop Officer manages farmer memberships).
 - Implement Buyer Order intake (FACCS Admin).
 - Implement Cooperative Assignment and Farmer Fulfillment.
 
