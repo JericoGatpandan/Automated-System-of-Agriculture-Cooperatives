@@ -3,14 +3,16 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import jwt from 'jsonwebtoken'
 
+import { JWT_EXPIRES_IN, JWT_SECRET, PORT} from './config/dotenv.js'
+
 dotenv.config()
 const app = express()
-const port = process.env.PORT || 8800
+const port = PORT || 8800
 
 app.use(cors())
 app.use(express.json())
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret'
+const JWT_SECRET = JWT_SECRET || 'fallback_secret'
 
 // MOCK AUTH ENDPOINTS FOR FRONTEND TESTING
 // Replace with actual Sequelize logic once migrations are ready.
@@ -29,7 +31,7 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   const user = { id: 1, email, role };
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
+  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
   res.json({ token, user });
 });
