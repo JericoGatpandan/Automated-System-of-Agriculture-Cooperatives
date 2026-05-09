@@ -21,18 +21,22 @@ Update this file after every meaningful implementation change.
 - Synchronized `GEMINI.md` as the system entry point.
 - Integrated `shadcn` skill for UI development.
 - **Implemented Design System**:
-    - Installed Tailwind CSS v4 and Lucide React.
-    - Configured shadcn/ui with the `maia` preset and custom theme from `ui-context.md`.
-    - Added core components: Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea, Table, Badge, Select, Label.
-    - Updated typography to use Poppins (UI) and IBM Plex Mono (Code/Mono).
-    - Verified build with successful `npm run build`.
-    - Integrated specific ASAC variables inside `App.css`.
+  - Installed Tailwind CSS v4 and Lucide React.
+  - Configured shadcn/ui with the `maia` preset and custom theme from `ui-context.md`.
+  - Added core components: Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea, Table, Badge, Select, Label.
+  - Updated typography to use Poppins (UI) and IBM Plex Mono (Code/Mono).
+  - Verified build with successful `npm run build`.
+  - Integrated specific ASAC variables inside `App.css`.
 - **Implemented Role-Based Authentication**:
-    - Created two-column UI layout for `/login` and `/register` using `shadcn/ui`.
-    - Setup React Router with `ProtectedRoute` for Role-based access control.
-    - Created placeholder dashboards for Admin, Coop Officer, and Farmer.
-    - Setup `AuthContext` to persist tokens using `localStorage`.
-    - Created temporary mock Express backend to facilitate frontend testing while DB migrations are pending.
+  - Created two-column UI layout for `/login` and `/register` using `shadcn/ui`.
+  - Setup React Router with `ProtectedRoute` for Role-based access control.
+  - Created placeholder dashboards for Admin, Coop Officer, and Farmer.
+  - Setup `AuthContext` to persist tokens using `localStorage`.
+  - Created temporary mock Express backend to facilitate frontend testing while DB migrations are pending.
+- **Updated Sequelize schema alignment**:
+  - Added model associations per cardinalities.
+  - Updated migrations to use domain `*ID` primary keys and added foreign key constraints.
+  - Removed duplicate `createdAt` definitions in affected migrations.
 
 ## In Progress
 
