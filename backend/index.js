@@ -20,6 +20,11 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/cooperatives", cooperativeRoutes);
 
+app.get("/", (req, res) => {
+  res.send("ASAC System Backend is running!");
+});
+
+
 // ── Health Check ──
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

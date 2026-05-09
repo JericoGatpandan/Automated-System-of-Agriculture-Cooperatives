@@ -52,6 +52,15 @@ Update this file after every meaningful implementation change.
   - Frontend: Full registry page at `/admin/cooperatives` with shadcn Table, Dialog forms, destructive delete confirmation modal.
   - Redesigned Admin Dashboard as a module navigation grid.
   - See `context/feature-specs/05-cooperative-registry.md` for details.
+- **Implemented Sidebar Navigation (Role-Based)**:
+  - Created AppShell layout wrapper with persistent sidebar for all authenticated pages.
+  - Role-scoped navigation: Admin (6 items), Officer (6 items), Farmer (4 items).
+  - Future/unimplemented modules rendered as disabled with "Coming soon" tooltips.
+  - Mobile-responsive: Sheet-based drawer on small screens.
+  - Installed shadcn `Sheet` and `Tooltip` components.
+  - Removed all per-page Sign Out buttons and back buttons (sidebar handles navigation).
+  - Restructured App.tsx to use nested routes per role group.
+  - See `context/feature-specs/06-sidebar-navigation.md` for details.
 
 ## In Progress
 
