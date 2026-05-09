@@ -2,8 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { ScrollArea } from "../ui/scroll-area";
-import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 import {
   LayoutDashboard,
@@ -19,6 +25,8 @@ import {
   Receipt,
   PiggyBank,
   LogOut,
+  UserCircle,
+  ChevronsUpDown,
 } from "lucide-react";
 
 import logoImg from "../../assets/logo.png";
@@ -28,6 +36,13 @@ const ROLE_LABELS: Record<string, string> = {
   Admin: "FACCS Admin",
   Officer: "Cooperative Officer",
   Farmer: "Farmer",
+};
+
+// ── Profile route mapping ──
+const PROFILE_ROUTES: Record<string, string> = {
+  Admin: "/admin/profile",
+  Officer: "/coop/profile",
+  Farmer: "/farmer/profile",
 };
 
 // ── Navigation config per role (from 06-sidebar-navigation.md) ──
@@ -68,6 +83,7 @@ export function Sidebar() {
 
   const role = user?.role ?? "Admin";
   const navItems = NAV_BY_ROLE[role] ?? [];
+  const profileRoute = PROFILE_ROUTES[role] ?? "/admin/profile";
 
   const handleSignOut = () => {
     logout();
@@ -103,23 +119,43 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
 
-      {/* ── User Footer ── */}
-      <div className="border-t border-sidebar-border px-4 py-4">
-        <div className="mb-3">
-          <p className="text-xs text-sidebar-foreground/60 truncate" title={user?.email}>
-            {user?.email}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-          onClick={handleSignOut}
-          id="sidebar-sign-out"
-        >
-          <LogOut className="h-5 w-5" />
-          Sign Out
-        </Button>
+      {/* ── User Footer (DropdownMenu) ── */}
+      <div className="border-t border-sidebar-border px-3 py-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent/50"
+              id="sidebar-user-menu"
+            >
+              <UserCircle className="h-5 w-5 shrink-0 text-sidebar-foreground/70" />
+              <span className="truncate text-left flex-1 text-sidebar-foreground/80" title={user?.email}>
+                {user?.email}
+              </span>
+              <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/40" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="top" className="w-56">
+            <DropdownMenuItem
+              onClick={() => navigate(profileRoute)}
+              className="cursor-pointer"
+              id="menu-profile"
+            >
+              <UserCircle className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="cursor-pointer text-destructive focus:text-destructive"
+              id="menu-sign-out"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   );
 }
+

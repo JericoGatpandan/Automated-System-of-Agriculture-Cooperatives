@@ -10,6 +10,7 @@ import { AdminDashboard } from "./pages/admin/AdminDashboard"
 import { CooperativeRegistry } from "./pages/admin/CooperativeRegistry"
 import { CoopDashboard } from "./pages/coop/CoopDashboard"
 import { FarmerDashboard } from "./pages/farmer/FarmerDashboard"
+import { ProfilePage } from "./pages/profile/ProfilePage"
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
                     <Route index element={<AdminDashboard />} />
                     <Route path="cooperatives" element={<CooperativeRegistry />} />
                     <Route path="register" element={<Register />} />
+                    <Route path="profile" element={<ProfilePage />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
@@ -40,6 +42,7 @@ function App() {
                   <Routes>
                     <Route index element={<CoopDashboard />} />
                     <Route path="register" element={<Register />} />
+                    <Route path="profile" element={<ProfilePage />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
@@ -51,6 +54,7 @@ function App() {
                 <AppShell>
                   <Routes>
                     <Route index element={<FarmerDashboard />} />
+                    <Route path="profile" element={<ProfilePage />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>

@@ -9,6 +9,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV || "development"}.local` });
 
 import authRoutes from "./routes/auth.routes.js";
 import cooperativeRoutes from "./routes/cooperative.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 
 const app = express();
 const port = PORT || 8800;
@@ -19,6 +20,7 @@ app.use(express.json());
 // ── Route Mounting ──
 app.use("/api/auth", authRoutes);
 app.use("/api/cooperatives", cooperativeRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.get("/", (req, res) => {
   res.send("ASAC System Backend is running!");

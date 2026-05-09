@@ -61,6 +61,15 @@ Update this file after every meaningful implementation change.
   - Removed all per-page Sign Out buttons and back buttons (sidebar handles navigation).
   - Restructured App.tsx to use nested routes per role group.
   - See `context/feature-specs/06-sidebar-navigation.md` for details.
+- **Implemented Profile Management**:
+  - Backend: 4 REST endpoints on `/api/profile` (GET profile, PUT email, PUT password, DELETE soft-delete).
+  - Role-specific org data: Admin (none), Officer (cooperative details), Farmer (farm + memberships).
+  - Frontend: Profile page at `/{role-prefix}/profile` with account info, org info, and action dialogs.
+  - Sidebar footer upgraded to DropdownMenu with Profile + Sign Out options.
+  - Installed shadcn `DropdownMenu` and `Separator` components.
+  - Security: Password confirmation for password change and account deactivation.
+  - Last-admin protection: Cannot deactivate if only one active admin remains.
+  - See `context/feature-specs/07-profile-management.md` for details.
 
 ## In Progress
 
