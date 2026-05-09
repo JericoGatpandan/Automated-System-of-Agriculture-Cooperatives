@@ -70,14 +70,25 @@ Update this file after every meaningful implementation change.
   - Security: Password confirmation for password change and account deactivation.
   - Last-admin protection: Cannot deactivate if only one active admin remains.
   - See `context/feature-specs/07-profile-management.md` for details.
+- **Implemented Farmer Registry (CRUD)**:
+  - Backend: 7 REST endpoints on `/api/farmers` (Admin list-all, Officer list-own-coop, detail, create, update, delete, bulk-delete).
+  - Transactional create: User + Farmer + FarmerCooperative in one atomic operation.
+  - Officer scope enforcement: All read/write ops scoped to officer's cooperative via FarmerCooperative join.
+  - Frontend: Officer CRUD list with checkbox selection, bulk deactivate, search, and destructive modals.
+  - Multi-step registration form (4 steps: Personal, Farm, Cooperative auto-assign, Review).
+  - Tabbed detail page (Personal, Farm, Memberships, Account + Products table).
+  - Admin read-only list with cooperative column across all coops.
+  - Table styling: bold names, abbreviated dates, color-coded status badges, highlighted headers, PHP money format.
+  - Installed shadcn `Checkbox` component.
+  - Enabled Farmer Registry nav items in sidebar for Admin and Officer.
+  - See `context/feature-specs/08-farmer-registry.md` for details.
 
 ## In Progress
 
-- Farmer Registry module (next feature unit).
+- Order Management module (next feature unit).
 
 ## Next Up
 
-- Implement Farmer Registry (Coop Officer manages farmer memberships).
 - Implement Buyer Order intake (FACCS Admin).
 - Implement Cooperative Assignment and Farmer Fulfillment.
 

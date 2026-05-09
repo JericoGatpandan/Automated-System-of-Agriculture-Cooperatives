@@ -49,7 +49,7 @@ const PROFILE_ROUTES: Record<string, string> = {
 const ADMIN_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/admin", exact: true },
   { label: "Cooperative Registry", icon: Building2, route: "/admin/cooperatives" },
-  { label: "Farmer Registry", icon: Users, route: "/admin/farmers", disabled: true },
+  { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
   { label: "Order Management", icon: ShoppingCart, route: "/admin/orders", disabled: true },
   { label: "Deliveries", icon: Truck, route: "/admin/deliveries", disabled: true },
   { label: "Federation Overview", icon: BarChart3, route: "/admin/overview", disabled: true },
@@ -57,7 +57,7 @@ const ADMIN_NAV = [
 
 const OFFICER_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/coop", exact: true },
-  { label: "Farmer Registry", icon: Users, route: "/coop/farmers", disabled: true },
+  { label: "Farmer Registry", icon: Users, route: "/coop/farmers" },
   { label: "Assignments", icon: ClipboardList, route: "/coop/assignments", disabled: true },
   { label: "Loan Management", icon: Wallet, route: "/coop/loans", disabled: true },
   { label: "Farmer Ledger", icon: BookOpen, route: "/coop/ledger", disabled: true },
