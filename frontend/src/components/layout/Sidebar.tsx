@@ -51,7 +51,7 @@ const ADMIN_NAV = [
   { label: "Cooperative Registry", icon: Building2, route: "/admin/cooperatives" },
   { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
   { label: "Order Management", icon: ShoppingCart, route: "/admin/orders" },
-  { label: "Deliveries", icon: Truck, route: "/admin/deliveries", disabled: true },
+  { label: "Deliveries", icon: Truck, route: "/admin/deliveries" },
   { label: "Federation Overview", icon: BarChart3, route: "/admin/overview", disabled: true },
 ];
 

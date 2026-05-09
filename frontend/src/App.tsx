@@ -20,6 +20,9 @@ import { OrderForm } from "./pages/admin/OrderForm"
 import { OrderDetail } from "./pages/admin/OrderDetail"
 import { CoopAssignments } from "./pages/coop/CoopAssignments"
 import { AssignmentDetail } from "./pages/coop/AssignmentDetail"
+import { DeliveryList } from "./pages/admin/DeliveryList"
+import { DeliveryForm } from "./pages/admin/DeliveryForm"
+import { DeliveryDetail } from "./pages/admin/DeliveryDetail"
 
 function App() {
   return (
@@ -45,6 +48,10 @@ function App() {
                     <Route path="orders/new" element={<OrderForm />} />
                     <Route path="orders/:id" element={<OrderDetail />} />
                     <Route path="orders/:id/edit" element={<OrderForm />} />
+                    <Route path="deliveries" element={<DeliveryList />} />
+                    <Route path="deliveries/new" element={<DeliveryForm />} />
+                    <Route path="deliveries/:id" element={<DeliveryDetail />} />
+                    <Route path="deliveries/:id/edit" element={<DeliveryForm />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>

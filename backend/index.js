@@ -13,6 +13,7 @@ import profileRoutes from "./routes/profile.routes.js";
 import farmerRoutes from "./routes/farmer.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
+import deliveryRoutes from "./routes/delivery.routes.js";
 
 const app = express();
 const port = PORT || 8800;
@@ -27,6 +28,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/farmers", farmerRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/deliveries", deliveryRoutes);
 
 app.get("/", (req, res) => {
   res.send("ASAC System Backend is running!");

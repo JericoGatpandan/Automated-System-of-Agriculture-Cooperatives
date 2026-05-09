@@ -91,14 +91,20 @@ Update this file after every meaningful implementation change.
   - Enabled "Order Management" (Admin) and "Assignments" (Officer) nav items in sidebar.
   - Destructive operations (cancel order, remove assignment, remove fulfillment) use confirmation dialogs per `ui-context.md`.
   - See `context/feature-specs/09-order-management.md` for details.
+- **Implemented Delivery Management**:
+  - Backend: `/api/deliveries` endpoints (list, detail, create, update, deliver, cancel) with atomic delivery completion → SalesRecords + FeeRecords.
+  - Delivery completion validates eligible order status and commission ranges; creates FarmerAccount as needed; updates BuyerOrder to `completed` when all deliveries are delivered.
+  - Frontend: Admin delivery list with status filter, create/edit form, and detail view with generated sales records.
+  - Mark-as-delivered confirmation includes amount, commission rates, and fulfilling farmer count.
+  - Enabled Admin "Deliveries" sidebar item.
+  - See `context/feature-specs/10-delivery-management.md` for details.
 
 ## In Progress
 
-- Delivery Management module (next feature unit).
+- FarmLedger Accounting module.
 
 ## Next Up
 
-- Implement Delivery Management (Admin manages deliveries, triggers accounting).
 - Implement FarmLedger Accounting module.
 
 ## Open Questions
