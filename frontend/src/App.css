@@ -167,3 +167,30 @@
     @apply font-sans;
   }
 }
+
+/* Public landing: infinite horizontal partner strip (two identical halves → translate -50%) */
+@keyframes landing-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-marquee-track {
+  width: max-content;
+  display: flex;
+  animation: landing-marquee 42s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 42rem;
+    margin-inline: auto;
+  }
+}

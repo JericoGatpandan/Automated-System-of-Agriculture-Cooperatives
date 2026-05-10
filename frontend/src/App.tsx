@@ -27,6 +27,9 @@ import { FederationFarmLedger } from "./pages/admin/FederationFarmLedger"
 import { CooperativeLedgerList } from "./pages/ledger/CooperativeLedgerList"
 import { FarmerLedgerDetail } from "./pages/ledger/FarmerLedgerDetail"
 import { FarmerBalanceSheet } from "./pages/ledger/FarmerBalanceSheet"
+import { LandingPage } from "./pages/landing/LandingPage"
+import { DocumentationPage } from "./pages/landing/DocumentationPage"
+import { AboutPage } from "./pages/landing/AboutPage"
 
 function App() {
   return (
@@ -34,7 +37,10 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Route */}
+            {/* Public */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/docs" element={<DocumentationPage />} />
             <Route path="/login" element={<Login />} />
 
             {/* Admin Routes */}
@@ -104,8 +110,8 @@ function App() {
             {/* Legacy /register redirect */}
             <Route path="/register" element={<Navigate to="/admin/register" replace />} />
 
-            {/* Fallback routing */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Fallback → public landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -103,6 +103,11 @@ Update this file after every meaningful implementation change.
   - Frontend: Admin federation overview at `/admin/farmledger`, cooperative ledger at `/admin/farmledger/coops/:coopId`, farmer detail at `/admin/farmledger/farmers/:id` (optional `coopId` query when multiple memberships). Officer cooperative ledger at `/coop/farmledger`, farmer detail under `/coop/farmledger/farmers/:id`. Farmer view-only ledger at `/farmer/ledger`, printable balance sheet at `/farmer/ledger/statement` (and parallel officer/admin statement routes). Sidebar nav enabled for Farm Ledger / Farmer Ledger / My Ledger; IBM Plex Mono used for money columns per spec.
   - Officer URLs follow the existing app convention (`/coop/...`) rather than the alternate `/officer/...` naming in the feature doc.
   - See `context/feature-specs/11-farmledger-accounting.md` for details.
+- **Implemented Public Landing Page**:
+  - Route **`/`** renders an unauthenticated marketing page (`LandingPage`): hero, features, partner marquee; shared **`PublicHeader`** / **`PublicFooter`** with site map (Home, Features, Partners, About, Documentation, Sign in), draft FACCS-style address/email/phone (placeholders), draft social buttons, and About teaser.
+  - **`/about`** — draft “About ASAC” copy for FACCS; **`/docs`** — “documentation currently being built” placeholder.
+  - App wildcard routes navigate to **`/`** instead of `/login`.
+  - See `context/feature-specs/12-landing-page.md` for details.
 
 ## In Progress
 
@@ -110,7 +115,7 @@ Update this file after every meaningful implementation change.
 
 ## Next Up
 
-- Continue semester expansion beyond the three core modules as prioritized with stakeholders.
+- Continue semester expansion beyond the three core modules as prioritized with stakeholders (e.g. deeper polish on landing content or registration UX).
 
 ## Open Questions
 
