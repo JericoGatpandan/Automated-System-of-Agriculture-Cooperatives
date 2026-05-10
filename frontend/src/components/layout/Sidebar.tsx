@@ -19,17 +19,22 @@ import {
   Truck,
   BarChart3,
   ClipboardList,
-  Wallet,
   BookOpen,
-  FileText,
-  Receipt,
-  PiggyBank,
   LogOut,
   UserCircle,
   ChevronsUpDown,
 } from "lucide-react";
 
 import logoImg from "../../assets/logo.png";
+import type { LucideIcon } from "lucide-react";
+
+type SidebarNavEntry = {
+  label: string;
+  icon: LucideIcon;
+  route: string;
+  exact?: boolean;
+  disabled?: boolean;
+};
 
 // ── Role label mapping ──
 const ROLE_LABELS: Record<string, string> = {
@@ -46,32 +51,28 @@ const PROFILE_ROUTES: Record<string, string> = {
 };
 
 // ── Navigation config per role (from 06-sidebar-navigation.md) ──
-const ADMIN_NAV = [
+const ADMIN_NAV: SidebarNavEntry[] = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/admin", exact: true },
   { label: "Cooperative Registry", icon: Building2, route: "/admin/cooperatives" },
   { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
   { label: "Order Management", icon: ShoppingCart, route: "/admin/orders" },
   { label: "Deliveries", icon: Truck, route: "/admin/deliveries" },
-  { label: "Federation Overview", icon: BarChart3, route: "/admin/overview", disabled: true },
+  { label: "Farm Ledger", icon: BarChart3, route: "/admin/farmledger" },
 ];
 
-const OFFICER_NAV = [
+const OFFICER_NAV: SidebarNavEntry[] = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/coop", exact: true },
   { label: "Farmer Registry", icon: Users, route: "/coop/farmers" },
   { label: "Assignments", icon: ClipboardList, route: "/coop/assignments" },
-  { label: "Loan Management", icon: Wallet, route: "/coop/loans", disabled: true },
-  { label: "Farmer Ledger", icon: BookOpen, route: "/coop/ledger", disabled: true },
-  { label: "Statements", icon: FileText, route: "/coop/statements", disabled: true },
+  { label: "Farmer Ledger", icon: BookOpen, route: "/coop/farmledger" },
 ];
 
-const FARMER_NAV = [
-  { label: "My Ledger", icon: BookOpen, route: "/farmer", exact: true },
-  { label: "Sales History", icon: Receipt, route: "/farmer/sales", disabled: true },
-  { label: "Share Capital", icon: PiggyBank, route: "/farmer/capital", disabled: true },
-  { label: "Loan Status", icon: Wallet, route: "/farmer/loans", disabled: true },
+const FARMER_NAV: SidebarNavEntry[] = [
+  { label: "Dashboard", icon: LayoutDashboard, route: "/farmer", exact: true },
+  { label: "My Ledger", icon: BookOpen, route: "/farmer/ledger" },
 ];
 
-const NAV_BY_ROLE: Record<string, typeof ADMIN_NAV> = {
+const NAV_BY_ROLE: Record<string, SidebarNavEntry[]> = {
   Admin: ADMIN_NAV,
   Officer: OFFICER_NAV,
   Farmer: FARMER_NAV,

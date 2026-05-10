@@ -98,14 +98,19 @@ Update this file after every meaningful implementation change.
   - Mark-as-delivered confirmation includes amount, commission rates, and fulfilling farmer count.
   - Enabled Admin "Deliveries" sidebar item.
   - See `context/feature-specs/10-delivery-management.md` for details.
+- **Implemented FarmLedger Accounting**:
+  - Backend: `/api/ledger` routes — federation summary (`GET /summary`), cooperative ledger list (`GET /coops/:coopId`, `GET /coops/me`), farmer ledger detail (`GET /farmers/:farmerId`, `GET /farmers/me`), printed statement snapshot (`POST /farmers/:farmerId/statement`), loans (`POST /farmers/:farmerId/loans`), repayment (`PUT /loans/:loanId/repayment`). Totals aggregate persisted `SalesRecord` / `FeeRecord` / `LoanRecord` data; officers scoped to their cooperative; farmers scoped to own account(s).
+  - Frontend: Admin federation overview at `/admin/farmledger`, cooperative ledger at `/admin/farmledger/coops/:coopId`, farmer detail at `/admin/farmledger/farmers/:id` (optional `coopId` query when multiple memberships). Officer cooperative ledger at `/coop/farmledger`, farmer detail under `/coop/farmledger/farmers/:id`. Farmer view-only ledger at `/farmer/ledger`, printable balance sheet at `/farmer/ledger/statement` (and parallel officer/admin statement routes). Sidebar nav enabled for Farm Ledger / Farmer Ledger / My Ledger; IBM Plex Mono used for money columns per spec.
+  - Officer URLs follow the existing app convention (`/coop/...`) rather than the alternate `/officer/...` naming in the feature doc.
+  - See `context/feature-specs/11-farmledger-accounting.md` for details.
 
 ## In Progress
 
-- FarmLedger Accounting module.
+- None.
 
 ## Next Up
 
-- Implement FarmLedger Accounting module.
+- Continue semester expansion beyond the three core modules as prioritized with stakeholders.
 
 ## Open Questions
 

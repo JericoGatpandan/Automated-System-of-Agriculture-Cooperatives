@@ -23,6 +23,10 @@ import { AssignmentDetail } from "./pages/coop/AssignmentDetail"
 import { DeliveryList } from "./pages/admin/DeliveryList"
 import { DeliveryForm } from "./pages/admin/DeliveryForm"
 import { DeliveryDetail } from "./pages/admin/DeliveryDetail"
+import { FederationFarmLedger } from "./pages/admin/FederationFarmLedger"
+import { CooperativeLedgerList } from "./pages/ledger/CooperativeLedgerList"
+import { FarmerLedgerDetail } from "./pages/ledger/FarmerLedgerDetail"
+import { FarmerBalanceSheet } from "./pages/ledger/FarmerBalanceSheet"
 
 function App() {
   return (
@@ -52,6 +56,10 @@ function App() {
                     <Route path="deliveries/new" element={<DeliveryForm />} />
                     <Route path="deliveries/:id" element={<DeliveryDetail />} />
                     <Route path="deliveries/:id/edit" element={<DeliveryForm />} />
+                    <Route path="farmledger/coops/:coopId" element={<CooperativeLedgerList mode="admin" />} />
+                    <Route path="farmledger/farmers/:farmerId/statement" element={<FarmerBalanceSheet />} />
+                    <Route path="farmledger/farmers/:farmerId" element={<FarmerLedgerDetail variant="admin" />} />
+                    <Route path="farmledger" element={<FederationFarmLedger />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
@@ -71,6 +79,9 @@ function App() {
                     <Route path="farmers/:id/edit" element={<FarmerForm />} />
                     <Route path="assignments" element={<CoopAssignments />} />
                     <Route path="assignments/:id" element={<AssignmentDetail />} />
+                    <Route path="farmledger/farmers/:farmerId/statement" element={<FarmerBalanceSheet />} />
+                    <Route path="farmledger/farmers/:farmerId" element={<FarmerLedgerDetail variant="coop" />} />
+                    <Route path="farmledger" element={<CooperativeLedgerList mode="officer" />} />
                   </Routes>
                 </AppShell>
               </ProtectedRoute>
@@ -82,6 +93,8 @@ function App() {
                 <AppShell>
                   <Routes>
                     <Route index element={<FarmerDashboard />} />
+                    <Route path="ledger/statement" element={<FarmerBalanceSheet />} />
+                    <Route path="ledger" element={<FarmerLedgerDetail variant="farmer" self />} />
                     <Route path="profile" element={<ProfilePage />} />
                   </Routes>
                 </AppShell>

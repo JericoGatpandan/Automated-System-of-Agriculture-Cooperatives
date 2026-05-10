@@ -68,19 +68,23 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* FarmLedger — coming soon */}
-          <Card className="opacity-60 border-border" id="module-farmledger">
+          {/* FarmLedger */}
+          <Card
+            className="cursor-pointer transition-shadow hover:shadow-md border-border"
+            id="module-farmledger"
+            onClick={() => navigate("/admin/farmledger")}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <BookOpen className="h-5 w-5 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <BookOpen className="h-5 w-5 text-primary" />
                 </div>
                 <CardTitle className="text-base">FarmLedger Accounting</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Sales, fees, and share-capital tracking with printable statements. <em>Coming soon.</em>
+                Federation overview, cooperative ledgers, farmer accounts, loans, and printable balance sheets.
               </CardDescription>
             </CardContent>
           </Card>
