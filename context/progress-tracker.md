@@ -52,16 +52,65 @@ Update this file after every meaningful implementation change.
   - Frontend: Full registry page at `/admin/cooperatives` with shadcn Table, Dialog forms, destructive delete confirmation modal.
   - Redesigned Admin Dashboard as a module navigation grid.
   - See `context/feature-specs/05-cooperative-registry.md` for details.
+- **Implemented Sidebar Navigation (Role-Based)**:
+  - Created AppShell layout wrapper with persistent sidebar for all authenticated pages.
+  - Role-scoped navigation: Admin (6 items), Officer (6 items), Farmer (4 items).
+  - Future/unimplemented modules rendered as disabled with "Coming soon" tooltips.
+  - Mobile-responsive: Sheet-based drawer on small screens.
+  - Installed shadcn `Sheet` and `Tooltip` components.
+  - Removed all per-page Sign Out buttons and back buttons (sidebar handles navigation).
+  - Restructured App.tsx to use nested routes per role group.
+  - See `context/feature-specs/06-sidebar-navigation.md` for details.
+- **Implemented Profile Management**:
+  - Backend: 4 REST endpoints on `/api/profile` (GET profile, PUT email, PUT password, DELETE soft-delete).
+  - Role-specific org data: Admin (none), Officer (cooperative details), Farmer (farm + memberships).
+  - Frontend: Profile page at `/{role-prefix}/profile` with account info, org info, and action dialogs.
+  - Sidebar footer upgraded to DropdownMenu with Profile + Sign Out options.
+  - Installed shadcn `DropdownMenu` and `Separator` components.
+  - Security: Password confirmation for password change and account deactivation.
+  - Last-admin protection: Cannot deactivate if only one active admin remains.
+  - See `context/feature-specs/07-profile-management.md` for details.
+- **Implemented Farmer Registry (CRUD)**:
+  - Backend: 7 REST endpoints on `/api/farmers` (Admin list-all, Officer list-own-coop, detail, create, update, delete, bulk-delete).
+  - Transactional create: User + Farmer + FarmerCooperative in one atomic operation.
+  - Officer scope enforcement: All read/write ops scoped to officer's cooperative via FarmerCooperative join.
+  - Frontend: Officer CRUD list with checkbox selection, bulk deactivate, search, and destructive modals.
+  - Multi-step registration form (4 steps: Personal, Farm, Cooperative auto-assign, Review).
+  - Tabbed detail page (Personal, Farm, Memberships, Account + Products table).
+  - Admin read-only list with cooperative column across all coops.
+  - Table styling: bold names, abbreviated dates, color-coded status badges, highlighted headers, PHP money format.
+  - Installed shadcn `Checkbox` component.
+  - Enabled Farmer Registry nav items in sidebar for Admin and Officer.
+  - See `context/feature-specs/08-farmer-registry.md` for details.
+- **Implemented Order & Transaction Management**:
+  - Backend: `order.routes.js` (5 endpoints: list, detail, create, update, cancel) and `assignment.routes.js` (7 endpoints: officer list, detail, create/delete assignment, create/update/delete fulfillment).
+  - Automatic status cascading: Order status auto-updates (pending → assigned → inProgress → consolidated) and assignment status auto-updates (pending → matched → ready) based on downstream entity changes.
+  - Admin: Order list with search + status filter, create/edit form, order detail page with cooperative assignment management (assign dialog, remove dialog, quantity progress bar).
+  - Officer: Assignment list (scoped to own coop), assignment detail with farmer fulfillment management (assign farmer dialog, inline status update via Select, remove fulfillment dialog, quantity progress bar).
+  - Installed shadcn `Progress` component. `Select` and `Textarea` already existed.
+  - Enabled "Order Management" (Admin) and "Assignments" (Officer) nav items in sidebar.
+  - Destructive operations (cancel order, remove assignment, remove fulfillment) use confirmation dialogs per `ui-context.md`.
+  - See `context/feature-specs/09-order-management.md` for details.
+- **Implemented Delivery Management**:
+  - Backend: `/api/deliveries` endpoints (list, detail, create, update, deliver, cancel) with atomic delivery completion → SalesRecords + FeeRecords.
+  - Delivery completion validates eligible order status and commission ranges; creates FarmerAccount as needed; updates BuyerOrder to `completed` when all deliveries are delivered.
+  - Frontend: Admin delivery list with status filter, create/edit form, and detail view with generated sales records.
+  - Mark-as-delivered confirmation includes amount, commission rates, and fulfilling farmer count.
+  - Enabled Admin "Deliveries" sidebar item.
+  - See `context/feature-specs/10-delivery-management.md` for details.
+- **Implemented FarmLedger Accounting**:
+  - Backend: `/api/ledger` routes — federation summary (`GET /summary`), cooperative ledger list (`GET /coops/:coopId`, `GET /coops/me`), farmer ledger detail (`GET /farmers/:farmerId`, `GET /farmers/me`), printed statement snapshot (`POST /farmers/:farmerId/statement`), loans (`POST /farmers/:farmerId/loans`), repayment (`PUT /loans/:loanId/repayment`). Totals aggregate persisted `SalesRecord` / `FeeRecord` / `LoanRecord` data; officers scoped to their cooperative; farmers scoped to own account(s).
+  - Frontend: Admin federation overview at `/admin/farmledger`, cooperative ledger at `/admin/farmledger/coops/:coopId`, farmer detail at `/admin/farmledger/farmers/:id` (optional `coopId` query when multiple memberships). Officer cooperative ledger at `/coop/farmledger`, farmer detail under `/coop/farmledger/farmers/:id`. Farmer view-only ledger at `/farmer/ledger`, printable balance sheet at `/farmer/ledger/statement` (and parallel officer/admin statement routes). Sidebar nav enabled for Farm Ledger / Farmer Ledger / My Ledger; IBM Plex Mono used for money columns per spec.
+  - Officer URLs follow the existing app convention (`/coop/...`) rather than the alternate `/officer/...` naming in the feature doc.
+  - See `context/feature-specs/11-farmledger-accounting.md` for details.
 
 ## In Progress
 
-- Farmer Registry module (next feature unit).
+- None.
 
 ## Next Up
 
-- Implement Farmer Registry (Coop Officer manages farmer memberships).
-- Implement Buyer Order intake (FACCS Admin).
-- Implement Cooperative Assignment and Farmer Fulfillment.
+- Continue semester expansion beyond the three core modules as prioritized with stakeholders.
 
 ## Open Questions
 
