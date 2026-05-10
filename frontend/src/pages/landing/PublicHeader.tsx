@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import logoImg from "../../assets/logo.png";
+import { HOME_FEATURES, HOME_PARTNERS } from "./hashLinks";
 
 export function PublicHeader() {
   return (
@@ -18,13 +19,13 @@ export function PublicHeader() {
 
         <nav className="flex flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:gap-x-6">
           <Link
-            to="/#features"
+            to={HOME_FEATURES}
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             Features
           </Link>
           <Link
-            to="/#partners"
+            to={HOME_PARTNERS}
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             Partners
