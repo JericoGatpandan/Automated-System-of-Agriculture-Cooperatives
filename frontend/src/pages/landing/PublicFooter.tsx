@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, MapPin, Phone, Share2 } from "lucide-react";
+import { HOME_FEATURES, HOME_PARTNERS } from "./hashLinks";
 
 /**
  * Draft contact & social placeholders — replace with approved FACCS details.
@@ -41,12 +42,12 @@ export function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link to="/#features" className={footLink}>
+                <Link to={HOME_FEATURES} className={footLink}>
                   Features
                 </Link>
               </li>
               <li>
-                <Link to="/#partners" className={footLink}>
+                <Link to={HOME_PARTNERS} className={footLink}>
                   Partners
                 </Link>
               </li>

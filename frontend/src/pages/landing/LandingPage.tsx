@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Building2,
   ClipboardList,
@@ -70,6 +70,20 @@ const PLACEHOLDER_PARTNERS = [
 ];
 
 export function LandingPage() {
+  const location = useLocation();
+
+  // Scroll to #features / #partners when navigating from another route or clicking nav on home.
+  useEffect(() => {
+    const raw = location.hash.replace(/^#/, "");
+    if (!raw) return;
+    const id = decodeURIComponent(raw);
+    const el = document.getElementById(id);
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.pathname, location.hash]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <PublicHeader />
