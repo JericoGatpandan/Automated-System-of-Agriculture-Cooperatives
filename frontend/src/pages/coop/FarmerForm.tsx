@@ -134,7 +134,7 @@ export function FarmerForm() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         {/* Page header */}
         <h1 className="text-xl font-bold text-foreground mb-6">
           {isEdit ? "Edit Farmer" : "Register New Farmer"}

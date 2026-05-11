@@ -8,7 +8,7 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         <h1 className="text-xl font-bold text-foreground mb-2">Dashboard</h1>
         <p className="text-sm text-muted-foreground mb-8">System modules overview</p>
 

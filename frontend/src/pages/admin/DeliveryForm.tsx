@@ -115,7 +115,7 @@ export function DeliveryForm() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/deliveries")}>
             <ChevronLeft />

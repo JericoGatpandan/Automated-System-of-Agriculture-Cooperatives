@@ -56,9 +56,9 @@ export function SidebarNavItem({
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        "flex w-full items-center gap-3 rounded-sm px-3 py-2 text-sm font-medium transition-colors",
         isActive
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          ? "bg-primary text-primary-foreground"
           : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
       )}
       onClick={() => navigate(route)}

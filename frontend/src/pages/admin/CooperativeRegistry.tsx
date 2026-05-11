@@ -231,7 +231,7 @@ export function CooperativeRegistry() {
   return (
     <div className="min-h-screen bg-background">
       {/* ── Content ── */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         {/* Page Title */}
         <div className="flex items-center gap-3 mb-6">
           <Building2 className="h-6 w-6 text-primary" />
