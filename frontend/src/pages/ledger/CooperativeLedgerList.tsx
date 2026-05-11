@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -30,6 +31,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Loader2, ChevronLeft } from "lucide-react";
 import { formatPhp } from "../../lib/money";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const BASE = "http://localhost:8800/api/ledger";
 
@@ -72,6 +74,7 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
   const { coopId } = useParams<{ coopId: string }>();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const pageSize = 10;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,16 +85,13 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
   const [customEnd, setCustomEnd] = useState("");
   const [coopName, setCoopName] = useState("");
   const [rows, setRows] = useState<LedgerRow[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const farmerBase =
-    mode === "admin"
-      ? `/admin/farmledger/farmers`
-      : `/coop/farmledger/farmers`;
+    mode === "admin" ? `/admin/farmledger/farmers` : `/coop/farmledger/farmers`;
 
   const listUrl =
-    mode === "officer"
-      ? `${BASE}/coops/me`
-      : `${BASE}/coops/${coopId}`;
+    mode === "officer" ? `${BASE}/coops/me` : `${BASE}/coops/${coopId}`;
 
   const load = useCallback(async () => {
     if (mode === "admin" && !coopId) return;
@@ -141,14 +141,27 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
     const q = search.toLowerCase();
     if (!q) return true;
     return (
-      r.farmerName.toLowerCase().includes(q) ||
-      String(r.farmerID).includes(q)
+      r.farmerName.toLowerCase().includes(q) || String(r.farmerID).includes(q)
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = filtered.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, period, customStart, customEnd]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full mx-auto px-6 py-8">
+      <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {mode === "admin" && (
           <Button
             variant="ghost"
@@ -176,7 +189,8 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Filters</CardTitle>
             <CardDescription>
-              Period totals use persisted sales and fee records by transaction date.
+              Period totals use persisted sales and fee records by transaction
+              date.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row flex-wrap gap-3">
@@ -240,73 +254,94 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {!loading && !error && (
-          <Card>
-            <CardContent className="pt-6 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead>Farmer</TableHead>
-                    <TableHead className="text-right">Farmer ID</TableHead>
-                    <TableHead className={`text-right ${mono}`}>Gross sales</TableHead>
-                    <TableHead className={`text-right ${mono}`}>Commission</TableHead>
-                    <TableHead className={`text-right ${mono}`}>Share capital</TableHead>
-                    <TableHead className={`text-right ${mono}`}>Outstanding loans</TableHead>
-                    <TableHead className={`text-right ${mono}`}>Net balance</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-right">Detail</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground py-10">
-                        No ledger rows yet. Complete a delivery to generate sales records.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filtered.map((r) => (
-                      <TableRow key={r.farmerAccountID}>
-                        <TableCell className="font-bold">
-                          {r.farmerName}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {r.farmerID}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(r.totalGrossSales)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(r.totalCommission)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(r.totalShareCapital)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(r.outstandingLoans)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(r.netBalance)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {accountStatusBadge(r.accountStatus)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
-                            to={
-                              mode === "admin" && coopId
-                                ? `${farmerBase}/${r.farmerID}?coopId=${coopId}`
-                                : `${farmerBase}/${r.farmerID}`
-                            }
-                            className="text-primary text-sm underline-offset-4 hover:underline"
-                          >
-                            Open
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+          <Card className="flex min-h-0 flex-1 flex-col">
+            <CardContent className="flex min-h-0 flex-1 flex-col pt-6 px-0 pb-0">
+              {filtered.length === 0 ? (
+                <div className="py-10 text-center text-muted-foreground">
+                  No ledger rows yet. Complete a delivery to generate sales
+                  records.
+                </div>
+              ) : (
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <ScrollArea className="min-h-0 flex-1">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="sticky top-0 z-10 bg-muted/40 hover:bg-muted/40">
+                          <TableHead>Farmer</TableHead>
+                          <TableHead className="text-right">
+                            Farmer ID
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Gross sales
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Commission
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Share capital
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Outstanding loans
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Net balance
+                          </TableHead>
+                          <TableHead className="text-center">Status</TableHead>
+                          <TableHead className="text-right">Detail</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginated.map((r) => (
+                          <TableRow key={r.farmerAccountID}>
+                            <TableCell className="font-bold">
+                              {r.farmerName}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {r.farmerID}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(r.totalGrossSales)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(r.totalCommission)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(r.totalShareCapital)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(r.outstandingLoans)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(r.netBalance)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {accountStatusBadge(r.accountStatus)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link
+                                to={
+                                  mode === "admin" && coopId
+                                    ? `${farmerBase}/${r.farmerID}?coopId=${coopId}`
+                                    : `${farmerBase}/${r.farmerID}`
+                                }
+                                className="text-primary text-sm underline-offset-4 hover:underline"
+                              >
+                                Open
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                  <TablePaginationFooter
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    totalCount={filtered.length}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

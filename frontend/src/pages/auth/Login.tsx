@@ -14,7 +14,7 @@ import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 
 import asacLogo from "../../assets/logo.png";
-import logotext from "../../assets/logo-text.png";
+// import logotext from "../../assets/logo-text.png";
 
 export function Login() {
   const [email, setEmail] = useState("");

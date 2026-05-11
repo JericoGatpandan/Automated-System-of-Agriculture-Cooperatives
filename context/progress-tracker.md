@@ -108,6 +108,10 @@ Update this file after every meaningful implementation change.
   - **`/about`** — draft “About ASAC” copy for FACCS; **`/docs`** — “documentation currently being built” placeholder.
   - App wildcard routes navigate to **`/`** instead of `/login`.
   - See `context/feature-specs/12-landing-page.md` for details.
+- **Implemented Table Pagination**:
+  - Added a shared `TablePaginationFooter` component with range text, previous/next controls, and numbered pages.
+  - Applied 10-row client-side pagination, sticky table headers, and scrollable table containers to the main list/detail tables across admin, cooperative, and ledger screens.
+  - Verified with a successful `npm run build` in `frontend/`.
 
 ## In Progress
 

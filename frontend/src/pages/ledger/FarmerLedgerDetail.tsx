@@ -1,5 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
@@ -18,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import { Badge } from "../../components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
@@ -37,14 +44,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import {
-  Loader2,
-  ChevronLeft,
-  FileText,
-  Plus,
-  Banknote,
-} from "lucide-react";
+import { Loader2, ChevronLeft, FileText, Plus, Banknote } from "lucide-react";
 import { formatPhp, formatRate } from "../../lib/money";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const LEDGER = "http://localhost:8800/api/ledger";
 
@@ -145,11 +147,15 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const pageSize = 10;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<DetailResponse | null>(null);
   const [tab, setTab] = useState("0");
+  const [salesPage, setSalesPage] = useState(1);
+  const [feePage, setFeePage] = useState(1);
+  const [loanPage, setLoanPage] = useState(1);
 
   const backHref =
     variant === "farmer"
@@ -176,11 +182,17 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
       }
       const res = await axios.get(url, { params });
       setData(res.data);
-      if (res.data.needsCoopId && res.data.membershipChoices?.length && !coopIdParam) {
+      if (
+        res.data.needsCoopId &&
+        res.data.membershipChoices?.length &&
+        !coopIdParam
+      ) {
         /* wait for user selection */
       }
     } catch (err: unknown) {
-      const ax = err as { response?: { status?: number; data?: { message?: string } } };
+      const ax = err as {
+        response?: { status?: number; data?: { message?: string } };
+      };
       if (ax.response?.status === 401) {
         logout();
         navigate("/login");
@@ -199,11 +211,53 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
   const ledgers = data?.ledgers || [];
   const activeLedger = ledgers[parseInt(tab, 10)] || ledgers[0];
 
+  useEffect(() => {
+    setSalesPage(1);
+    setFeePage(1);
+    setLoanPage(1);
+  }, [activeLedger?.farmerAccount.farmerAccountID]);
+
   const showOfficerActions = user?.role === "Officer" && variant === "coop";
   const showStatement =
     user?.role === "Admin" ||
     user?.role === "Officer" ||
     user?.role === "Farmer";
+
+  const salesRecords = activeLedger?.salesRecords || [];
+  const feeRecords = activeLedger?.feeRecords || [];
+  const loans = activeLedger?.loans || [];
+
+  const salesTotalPages = Math.max(
+    1,
+    Math.ceil(salesRecords.length / pageSize),
+  );
+  const feeTotalPages = Math.max(1, Math.ceil(feeRecords.length / pageSize));
+  const loanTotalPages = Math.max(1, Math.ceil(loans.length / pageSize));
+
+  const paginatedSales = salesRecords.slice(
+    (salesPage - 1) * pageSize,
+    salesPage * pageSize,
+  );
+  const paginatedFees = feeRecords.slice(
+    (feePage - 1) * pageSize,
+    feePage * pageSize,
+  );
+  const paginatedLoans = loans.slice(
+    (loanPage - 1) * pageSize,
+    loanPage * pageSize,
+  );
+
+  useEffect(() => {
+    setSalesPage((page) => Math.min(page, salesTotalPages));
+  }, [salesTotalPages]);
+
+  useEffect(() => {
+    setFeePage((page) => Math.min(page, feeTotalPages));
+  }, [feeTotalPages]);
+
+  useEffect(() => {
+    setLoanPage((page) => Math.min(page, loanTotalPages));
+  }, [loanTotalPages]);
 
   /* ── Dialogs ── */
   const [loanOpen, setLoanOpen] = useState(false);
@@ -319,7 +373,8 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
       <div className="min-h-screen bg-background max-w-lg mx-auto px-6 py-12">
         <h1 className="text-lg font-semibold mb-4">Select cooperative</h1>
         <p className="text-sm text-muted-foreground mb-4">
-          This farmer has multiple cooperative accounts. Choose one to open the ledger.
+          This farmer has multiple cooperative accounts. Choose one to open the
+          ledger.
         </p>
         <Select
           onValueChange={(v) => {
@@ -334,7 +389,10 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
           </SelectTrigger>
           <SelectContent>
             {data.membershipChoices.map((m) => (
-              <SelectItem key={m.farmerAccountID} value={String(m.primaryCoopID)}>
+              <SelectItem
+                key={m.farmerAccountID}
+                value={String(m.primaryCoopID)}
+              >
                 {m.coopName}
               </SelectItem>
             ))}
@@ -376,7 +434,11 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
               </Button>
             )}
             {showOfficerActions && activeLedger && (
-              <Button size="sm" onClick={() => setLoanOpen(true)} id="btn-add-loan">
+              <Button
+                size="sm"
+                onClick={() => setLoanOpen(true)}
+                id="btn-add-loan"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add loan
               </Button>
@@ -384,14 +446,13 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-destructive mb-4">{error}</p>
-        )}
+        {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
         {ledgers.length === 0 && !loading && (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              No farmer account or sales records yet. Ledger entries are created when a delivery is marked delivered.
+              No farmer account or sales records yet. Ledger entries are created
+              when a delivery is marked delivered.
             </CardContent>
           </Card>
         )}
@@ -400,7 +461,10 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
           <Tabs value={tab} onValueChange={setTab} className="mb-6">
             <TabsList>
               {ledgers.map((L, i) => (
-                <TabsTrigger key={L.farmerAccount.farmerAccountID} value={String(i)}>
+                <TabsTrigger
+                  key={L.farmerAccount.farmerAccountID}
+                  value={String(i)}
+                >
                   {L.cooperative?.coopName || `Account ${i + 1}`}
                 </TabsTrigger>
               ))}
@@ -415,29 +479,43 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
                 <CardTitle className="text-base">Summary</CardTitle>
                 <CardDescription>
                   {activeLedger.cooperative?.coopName} · Account status{" "}
-                  <Badge variant="outline">{activeLedger.farmerAccount.status}</Badge>
+                  <Badge variant="outline">
+                    {activeLedger.farmerAccount.status}
+                  </Badge>
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Gross sales</p>
-                  <p className={`text-lg ${mono}`}>{formatPhp(activeLedger.summary.totalGrossSales)}</p>
+                  <p className={`text-lg ${mono}`}>
+                    {formatPhp(activeLedger.summary.totalGrossSales)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Commission</p>
-                  <p className={`text-lg ${mono}`}>{formatPhp(activeLedger.summary.totalCommission)}</p>
+                  <p className={`text-lg ${mono}`}>
+                    {formatPhp(activeLedger.summary.totalCommission)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Share capital</p>
-                  <p className={`text-lg ${mono}`}>{formatPhp(activeLedger.summary.totalShareCapital)}</p>
+                  <p className={`text-lg ${mono}`}>
+                    {formatPhp(activeLedger.summary.totalShareCapital)}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Outstanding loans</p>
-                  <p className={`text-lg ${mono}`}>{formatPhp(activeLedger.summary.outstandingLoans)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Outstanding loans
+                  </p>
+                  <p className={`text-lg ${mono}`}>
+                    {formatPhp(activeLedger.summary.outstandingLoans)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Net balance</p>
-                  <p className={`text-lg ${mono}`}>{formatPhp(activeLedger.summary.netBalance)}</p>
+                  <p className={`text-lg ${mono}`}>
+                    {formatPhp(activeLedger.summary.netBalance)}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -446,41 +524,67 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
               <CardHeader>
                 <CardTitle className="text-base">Sales records</CardTitle>
               </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>Delivery ID</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Gross</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Commission</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Net</TableHead>
-                      <TableHead>Remarks</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeLedger.salesRecords.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                          No sales records yet.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeLedger.salesRecords.map((s) => (
-                        <TableRow key={s.salesRecordID}>
-                          <TableCell className="tabular-nums">{s.deliveryID}</TableCell>
-                          <TableCell>{fmtDate(s.transactionDate)}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(s.grossAmount)}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(s.commissionAmount)}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(s.netAmount)}</TableCell>
-                          <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
-                            {s.remarks || "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+              <CardContent className="flex min-h-0 flex-col px-0 pb-0">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  {salesRecords.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-muted-foreground">
+                      No sales records yet.
+                    </div>
+                  ) : (
+                    <ScrollArea className="min-h-0 flex-1">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="sticky top-0 z-10 bg-muted/40 hover:bg-muted/40">
+                            <TableHead>Delivery ID</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Gross
+                            </TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Commission
+                            </TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Net
+                            </TableHead>
+                            <TableHead>Remarks</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedSales.map((s) => (
+                            <TableRow key={s.salesRecordID}>
+                              <TableCell className="tabular-nums">
+                                {s.deliveryID}
+                              </TableCell>
+                              <TableCell>
+                                {fmtDate(s.transactionDate)}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(s.grossAmount)}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(s.commissionAmount)}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(s.netAmount)}
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
+                                {s.remarks || "—"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  )}
+                  {salesRecords.length > 0 && (
+                    <TablePaginationFooter
+                      currentPage={salesPage}
+                      pageSize={pageSize}
+                      totalCount={salesRecords.length}
+                      onPageChange={setSalesPage}
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -488,42 +592,61 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
               <CardHeader>
                 <CardTitle className="text-base">Fee breakdown</CardTitle>
                 <CardDescription>
-                  Share capital lines show 0.00% until contribution rates are confirmed.
+                  Share capital lines show 0.00% until contribution rates are
+                  confirmed.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>Type</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Rate</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeLedger.feeRecords.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                          No fee records.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeLedger.feeRecords.map((f) => (
-                        <TableRow key={f.feeRecordID}>
-                          <TableCell>{FEE_LABELS[f.feeType] || f.feeType}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>
-                            {formatRate(f.rate)}
-                          </TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(f.amount)}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{f.status}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+              <CardContent className="flex min-h-0 flex-col px-0 pb-0">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  {feeRecords.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-muted-foreground">
+                      No fee records.
+                    </div>
+                  ) : (
+                    <ScrollArea className="min-h-0 flex-1">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="sticky top-0 z-10 bg-muted/40 hover:bg-muted/40">
+                            <TableHead>Type</TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Rate
+                            </TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Amount
+                            </TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedFees.map((f) => (
+                            <TableRow key={f.feeRecordID}>
+                              <TableCell>
+                                {FEE_LABELS[f.feeType] || f.feeType}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatRate(f.rate)}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(f.amount)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{f.status}</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  )}
+                  {feeRecords.length > 0 && (
+                    <TablePaginationFooter
+                      currentPage={feePage}
+                      pageSize={pageSize}
+                      totalCount={feeRecords.length}
+                      onPageChange={setFeePage}
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -531,59 +654,87 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
               <CardHeader>
                 <CardTitle className="text-base">Loans</CardTitle>
               </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead className={`text-right ${mono}`}>Amount</TableHead>
-                      <TableHead>Purpose</TableHead>
-                      <TableHead>Release</TableHead>
-                      <TableHead>Due</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Repaid</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Outstanding</TableHead>
-                      <TableHead>Status</TableHead>
-                      {showOfficerActions && <TableHead className="text-right">Actions</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeLedger.loans.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={showOfficerActions ? 8 : 7} className="text-center text-muted-foreground py-8">
-                          No loans recorded.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeLedger.loans.map((l) => (
-                        <TableRow key={l.loanRecordID}>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(l.loanAmount)}</TableCell>
-                          <TableCell className="max-w-[180px] truncate">{l.purpose}</TableCell>
-                          <TableCell>{fmtDate(l.releaseDate)}</TableCell>
-                          <TableCell>{fmtDate(l.dueDate)}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(l.amountRepaid)}</TableCell>
-                          <TableCell className={`text-right ${mono}`}>{formatPhp(l.outstandingBalance)}</TableCell>
-                          <TableCell>{loanBadge(l.status)}</TableCell>
-                          {showOfficerActions && (
-                            <TableCell className="text-right">
-                              {l.status !== "paid" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setRepayLoanId(l.loanRecordID);
-                                    setRepayOpen(true);
-                                  }}
-                                >
-                                  <Banknote className="h-3 w-3 mr-1" />
-                                  Repay
-                                </Button>
+              <CardContent className="flex min-h-0 flex-col px-0 pb-0">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  {loans.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-muted-foreground">
+                      No loans recorded.
+                    </div>
+                  ) : (
+                    <ScrollArea className="min-h-0 flex-1">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="sticky top-0 z-10 bg-muted/40 hover:bg-muted/40">
+                            <TableHead className={`text-right ${mono}`}>
+                              Amount
+                            </TableHead>
+                            <TableHead>Purpose</TableHead>
+                            <TableHead>Release</TableHead>
+                            <TableHead>Due</TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Repaid
+                            </TableHead>
+                            <TableHead className={`text-right ${mono}`}>
+                              Outstanding
+                            </TableHead>
+                            <TableHead>Status</TableHead>
+                            {showOfficerActions && (
+                              <TableHead className="text-right">
+                                Actions
+                              </TableHead>
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedLoans.map((l) => (
+                            <TableRow key={l.loanRecordID}>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(l.loanAmount)}
+                              </TableCell>
+                              <TableCell className="max-w-[180px] truncate">
+                                {l.purpose}
+                              </TableCell>
+                              <TableCell>{fmtDate(l.releaseDate)}</TableCell>
+                              <TableCell>{fmtDate(l.dueDate)}</TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(l.amountRepaid)}
+                              </TableCell>
+                              <TableCell className={`text-right ${mono}`}>
+                                {formatPhp(l.outstandingBalance)}
+                              </TableCell>
+                              <TableCell>{loanBadge(l.status)}</TableCell>
+                              {showOfficerActions && (
+                                <TableCell className="text-right">
+                                  {l.status !== "paid" && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setRepayLoanId(l.loanRecordID);
+                                        setRepayOpen(true);
+                                      }}
+                                    >
+                                      <Banknote className="h-3 w-3 mr-1" />
+                                      Repay
+                                    </Button>
+                                  )}
+                                </TableCell>
                               )}
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  )}
+                  {loans.length > 0 && (
+                    <TablePaginationFooter
+                      currentPage={loanPage}
+                      pageSize={pageSize}
+                      totalCount={loans.length}
+                      onPageChange={setLoanPage}
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
           </>
@@ -608,23 +759,44 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
             </div>
             <div>
               <Label htmlFor="lpurp">Purpose</Label>
-              <Textarea id="lpurp" value={loanPurpose} onChange={(e) => setLoanPurpose(e.target.value)} rows={2} />
+              <Textarea
+                id="lpurp"
+                value={loanPurpose}
+                onChange={(e) => setLoanPurpose(e.target.value)}
+                rows={2}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="lrel">Release date</Label>
-                <Input id="lrel" type="date" value={loanRelease} onChange={(e) => setLoanRelease(e.target.value)} />
+                <Input
+                  id="lrel"
+                  type="date"
+                  value={loanRelease}
+                  onChange={(e) => setLoanRelease(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="ldue">Due date</Label>
-                <Input id="ldue" type="date" value={loanDue} onChange={(e) => setLoanDue(e.target.value)} />
+                <Input
+                  id="ldue"
+                  type="date"
+                  value={loanDue}
+                  onChange={(e) => setLoanDue(e.target.value)}
+                />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLoanOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setLoanOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={submitLoan} disabled={loanSaving}>
-              {loanSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+              {loanSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Save"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -648,13 +820,24 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
             </div>
             <div>
               <Label htmlFor="rdate">Repayment date</Label>
-              <Input id="rdate" type="date" value={repayDate} onChange={(e) => setRepayDate(e.target.value)} />
+              <Input
+                id="rdate"
+                type="date"
+                value={repayDate}
+                onChange={(e) => setRepayDate(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRepayOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRepayOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={submitRepay} disabled={repaySaving}>
-              {repaySaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
+              {repaySaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Submit"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -668,17 +851,36 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
           <div className="grid grid-cols-2 gap-3 py-2">
             <div>
               <Label htmlFor="ps">Period start</Label>
-              <Input id="ps" type="date" value={stmtStart} onChange={(e) => setStmtStart(e.target.value)} />
+              <Input
+                id="ps"
+                type="date"
+                value={stmtStart}
+                onChange={(e) => setStmtStart(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="pe">Period end</Label>
-              <Input id="pe" type="date" value={stmtEnd} onChange={(e) => setStmtEnd(e.target.value)} />
+              <Input
+                id="pe"
+                type="date"
+                value={stmtEnd}
+                onChange={(e) => setStmtEnd(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setStmtOpen(false)}>Cancel</Button>
-            <Button onClick={submitStatement} disabled={stmtSaving || !stmtStart || !stmtEnd}>
-              {stmtSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate"}
+            <Button variant="outline" onClick={() => setStmtOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitStatement}
+              disabled={stmtSaving || !stmtStart || !stmtEnd}
+            >
+              {stmtSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Generate"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

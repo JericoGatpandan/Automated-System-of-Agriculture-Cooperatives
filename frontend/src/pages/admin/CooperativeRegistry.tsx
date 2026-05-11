@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -30,11 +31,14 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 import {
   Plus,
   Pencil,
   Trash2,
+  Eye,
+  MoreVertical,
   Building2,
   Search,
   Phone,
@@ -42,6 +46,13 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 
 const API_BASE = "http://localhost:8800/api/cooperatives";
 
@@ -84,12 +95,14 @@ const emptyForm: CoopFormData = {
 export function CooperativeRegistry() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const pageSize = 10;
 
   // ── State ──
   const [cooperatives, setCooperatives] = useState<Cooperative[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -130,8 +143,20 @@ export function CooperativeRegistry() {
     (c) =>
       c.coopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.municipality.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      c.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginated = filtered.slice(startIndex, startIndex + pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   // ── Create handler ──
   const handleCreate = async () => {
@@ -145,7 +170,7 @@ export function CooperativeRegistry() {
       await fetchCooperatives();
     } catch (err: any) {
       setFormError(
-        err.response?.data?.message || "Failed to create cooperative"
+        err.response?.data?.message || "Failed to create cooperative",
       );
     } finally {
       setFormLoading(false);
@@ -172,7 +197,7 @@ export function CooperativeRegistry() {
       await fetchCooperatives();
     } catch (err: any) {
       setFormError(
-        err.response?.data?.message || "Failed to update cooperative"
+        err.response?.data?.message || "Failed to update cooperative",
       );
     } finally {
       setFormLoading(false);
@@ -191,7 +216,7 @@ export function CooperativeRegistry() {
       await fetchCooperatives();
     } catch (err: any) {
       setFormError(
-        err.response?.data?.message || "Failed to deactivate cooperative"
+        err.response?.data?.message || "Failed to deactivate cooperative",
       );
     } finally {
       setFormLoading(false);
@@ -231,13 +256,17 @@ export function CooperativeRegistry() {
   return (
     <div className="min-h-screen bg-background">
       {/* ── Content ── */}
-      <div className="w-full mx-auto px-6 py-8">
+      <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {/* Page Title */}
         <div className="flex items-center gap-3 mb-6">
           <Building2 className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-foreground">Cooperative Registry</h1>
-            <p className="text-sm text-muted-foreground">Manage federation cooperatives</p>
+            <h1 className="text-xl font-bold text-foreground">
+              Cooperative Registry
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage federation cooperatives
+            </p>
           </div>
         </div>
         {/* Toolbar */}
@@ -289,7 +318,7 @@ export function CooperativeRegistry() {
 
         {/* Table */}
         {!loading && !error && (
-          <Card>
+          <Card className="flex min-h-0 flex-1 flex-col">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
                 <div>
@@ -303,7 +332,7 @@ export function CooperativeRegistry() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="px-0 pb-0">
+            <CardContent className="flex min-h-0 flex-1 flex-col px-0 pb-0">
               {filtered.length === 0 ? (
                 <div className="text-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
@@ -324,85 +353,104 @@ export function CooperativeRegistry() {
                   )}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cooperative Name</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>CDA Registration</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Officer Email</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((coop) => (
-                      <TableRow key={coop.primaryCoopID}>
-                        <TableCell className="font-medium max-w-[250px]">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                            <span className="truncate">{coop.coopName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5 shrink-0" />
-                            <span>
-                              {coop.barangay}, {coop.municipality}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-xs">
-                            {coop.registrationNumber}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {coop.phone ? (
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Phone className="h-3.5 w-3.5 shrink-0" />
-                              <span>{coop.phone}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">
-                            {coop.User?.email || "—"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            Active
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEdit(coop)}
-                              id={`edit-coop-${coop.primaryCoopID}`}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openDelete(coop)}
-                              className="text-destructive hover:text-destructive"
-                              id={`delete-coop-${coop.primaryCoopID}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <ScrollArea className="min-h-0 flex-1">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="sticky top-0 z-10 bg-muted hover:bg-muted">
+                          <TableHead>Cooperative Name</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>CDA Registration</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Officer Email</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginated.map((coop) => (
+                          <TableRow key={coop.primaryCoopID}>
+                            <TableCell className="font-medium max-w-[250px]">
+                              <div className="flex items-center gap-2">
+                                <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                                <span className="truncate">
+                                  {coop.coopName}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1.5 text-muted-foreground">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span>
+                                  {coop.barangay}, {coop.municipality}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono text-xs">
+                                {coop.registrationNumber}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {coop.phone ? (
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Phone className="h-3.5 w-3.5 shrink-0" />
+                                  <span>{coop.phone}</span>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm">
+                                {coop.User?.email || "—"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-xs">
+                                Active
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    id={`actions-menu-${coop.primaryCoopID}`}
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => openEdit(coop)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => openDelete(coop)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                  <TablePaginationFooter
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    totalCount={filtered.length}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
               )}
             </CardContent>
           </Card>
@@ -668,9 +716,7 @@ export function CooperativeRegistry() {
             </DialogDescription>
           </DialogHeader>
 
-          {formError && (
-            <p className="text-sm text-destructive">{formError}</p>
-          )}
+          {formError && <p className="text-sm text-destructive">{formError}</p>}
 
           <DialogFooter>
             <Button

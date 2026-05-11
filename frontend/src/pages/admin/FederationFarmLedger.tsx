@@ -18,8 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { formatPhp } from "../../lib/money";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const API = "http://localhost:8800/api/ledger/summary";
 
@@ -36,6 +38,7 @@ interface CoopRow {
 export function FederationFarmLedger() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const pageSize = 10;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deliveriesCompleted, setDeliveriesCompleted] = useState(0);
@@ -44,6 +47,7 @@ export function FederationFarmLedger() {
   const [totalCooperativeFees, setTotalCooperativeFees] = useState(0);
   const [totalShareCapital, setTotalShareCapital] = useState(0);
   const [cooperativeSummary, setCooperativeSummary] = useState<CoopRow[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const load = useCallback(async () => {
     try {
@@ -73,11 +77,24 @@ export function FederationFarmLedger() {
     load();
   }, [load]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(cooperativeSummary.length / pageSize),
+  );
+  const paginated = cooperativeSummary.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const mono = "font-[family-name:var(--font-mono)] tabular-nums";
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="w-full mx-auto px-6 py-8">
+      <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Farm Ledger — Federation Overview
         </h1>
@@ -90,9 +107,7 @@ export function FederationFarmLedger() {
             <Loader2 className="h-4 w-4 animate-spin" /> Loading…
           </div>
         )}
-        {error && (
-          <p className="text-sm text-destructive mb-4">{error}</p>
-        )}
+        {error && <p className="text-sm text-destructive mb-4">{error}</p>}
 
         {!loading && !error && (
           <>
@@ -139,57 +154,79 @@ export function FederationFarmLedger() {
               </Card>
             </div>
 
-            <Card>
+            <Card className="flex min-h-0 flex-1 flex-col">
               <CardHeader>
                 <CardTitle className="text-base">Cooperative summary</CardTitle>
                 <CardDescription>
                   Gross sales and fees aggregated per primary cooperative.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>Cooperative</TableHead>
-                      <TableHead className="text-right">Farmers w/ accounts</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Gross sales</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Net earnings</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Fed. fee</TableHead>
-                      <TableHead className={`text-right ${mono}`}>Coop fee</TableHead>
-                      <TableHead className="text-right">Ledger</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cooperativeSummary.map((row) => (
-                      <TableRow key={row.primaryCoopID}>
-                        <TableCell className="font-medium">{row.coopName}</TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {row.farmersWithAccounts}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(row.totalGrossSales)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(row.totalNetEarnings)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(row.totalFederationFee)}
-                        </TableCell>
-                        <TableCell className={`text-right ${mono}`}>
-                          {formatPhp(row.totalCooperativeFee)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link
-                            to={`/admin/farmledger/coops/${row.primaryCoopID}`}
-                            className="text-primary text-sm underline-offset-4 hover:underline"
-                          >
-                            View cooperative ledger
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <CardContent className="flex min-h-0 flex-1 flex-col px-0 pb-0">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <ScrollArea className="min-h-0 flex-1">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="sticky top-0 z-10 bg-muted/40 hover:bg-muted/40">
+                          <TableHead>Cooperative</TableHead>
+                          <TableHead className="text-right">
+                            Farmers w/ accounts
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Gross sales
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Net earnings
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Fed. fee
+                          </TableHead>
+                          <TableHead className={`text-right ${mono}`}>
+                            Coop fee
+                          </TableHead>
+                          <TableHead className="text-right">Ledger</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginated.map((row) => (
+                          <TableRow key={row.primaryCoopID}>
+                            <TableCell className="font-medium">
+                              {row.coopName}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {row.farmersWithAccounts}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(row.totalGrossSales)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(row.totalNetEarnings)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(row.totalFederationFee)}
+                            </TableCell>
+                            <TableCell className={`text-right ${mono}`}>
+                              {formatPhp(row.totalCooperativeFee)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link
+                                to={`/admin/farmledger/coops/${row.primaryCoopID}`}
+                                className="text-primary text-sm underline-offset-4 hover:underline"
+                              >
+                                View cooperative ledger
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                  <TablePaginationFooter
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    totalCount={cooperativeSummary.length}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
               </CardContent>
             </Card>
           </>

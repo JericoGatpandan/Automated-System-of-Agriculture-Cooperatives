@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { PublicHeader } from "./PublicHeader";
 import { PublicFooter } from "./PublicFooter";
 
-import HeroImage from "../../assets/hero.png";
+import HeroImage from "../../assets/hero.jpg";
 
 function Reveal({
   children,
@@ -94,7 +94,7 @@ export function LandingPage() {
         {/* Hero */}
         <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 via-background to-background px-4 py-16 sm:px-6 sm:py-24 h-screen relative overflow-hidden">
           <div
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-30"
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-50 filter blur-[2px]"
             style={{ backgroundImage: `url(${HeroImage})` }}
           />
           <div className="mx-auto max-w-3xl text-center">
@@ -109,7 +109,7 @@ export function LandingPage() {
                   one transparent system
                 </span>
               </h1>
-              <p className="mt-5 text-base text-muted-foreground sm:text-lg md:text-xl">
+              <p className="mt-5 text-base text-strong sm:text-lg md:text-xl">
                 ASAC connects federation admins, cooperative officers, and
                 farmers: manage referrals, deliveries, and FarmLedger accounting
                 with records you can audit and share at cooperative meetings.
