@@ -346,7 +346,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         <Button variant="ghost" size="sm" className="mb-4 -ml-2" asChild>
           <Link to={backHref}>
             <ChevronLeft className="h-4 w-4 mr-1" />

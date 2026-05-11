@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 import { PublicHeader } from "./PublicHeader";
 import { PublicFooter } from "./PublicFooter";
 
+import HeroImage from "../../assets/hero.png";
+
 function Reveal({
   children,
   className,
@@ -90,20 +92,27 @@ export function LandingPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 via-background to-background px-4 py-16 sm:px-6 sm:py-24">
+        <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 via-background to-background px-4 py-16 sm:px-6 sm:py-24 h-screen relative overflow-hidden">
+          <div
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-30"
+            style={{ backgroundImage: `url(${HeroImage})` }}
+          />
           <div className="mx-auto max-w-3xl text-center">
             <Reveal>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
                 <Leaf className="h-3.5 w-3.5 text-primary" aria-hidden />
                 Built for FACCS and primary cooperatives in Camarines Sur
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-                From buyer orders to farmer ledgers—one transparent system
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl text-balance leading-tight">
+                From buyer orders to farmer ledgers —{" "}
+                <span className="bg-primary from-emerald-500 to-teal-400 bg-clip-text text-transparent">
+                  one transparent system
+                </span>
               </h1>
               <p className="mt-5 text-base text-muted-foreground sm:text-lg md:text-xl">
-                ASAC connects federation admins, cooperative officers, and farmers:
-                manage referrals, deliveries, and FarmLedger accounting with records you can audit
-                and share at cooperative meetings.
+                ASAC connects federation admins, cooperative officers, and
+                farmers: manage referrals, deliveries, and FarmLedger accounting
+                with records you can audit and share at cooperative meetings.
               </p>
               <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                 <Button size="lg" className="gap-2" asChild>
@@ -112,7 +121,7 @@ export function LandingPage() {
                     <ArrowRight className="h-4 w-4" aria-hidden />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild>
+                <Button size="lg" variant="outline" asChild className="">
                   <a href="#features">View features</a>
                 </Button>
               </div>
@@ -131,8 +140,8 @@ export function LandingPage() {
                 Three core modules
               </h2>
               <p className="mt-2 max-w-2xl mx-auto text-sm text-muted-foreground sm:text-base">
-                Registry, orders, and accounting work together so nothing falls through informal
-                channels.
+                Registry, orders, and accounting work together so nothing falls
+                through informal channels.
               </p>
             </Reveal>
 
@@ -143,14 +152,18 @@ export function LandingPage() {
                     <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <Building2 className="h-5 w-5 text-primary" aria-hidden />
                     </div>
-                    <CardTitle className="text-lg">Cooperative &amp; farmer registry</CardTitle>
+                    <CardTitle className="text-lg">
+                      Cooperative &amp; farmer registry
+                    </CardTitle>
                     <CardDescription className="text-base leading-relaxed">
-                      Register primary cooperatives and farmer-members with clear membership and farm
-                      profiles—ready for assignments and ledger accounts.
+                      Register primary cooperatives and farmer-members with
+                      clear membership and farm profiles—ready for assignments
+                      and ledger accounts.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground">
-                    Officers maintain accurate rosters; federation sees the network at a glance.
+                    Officers maintain accurate rosters; federation sees the
+                    network at a glance.
                   </CardContent>
                 </Card>
               </Reveal>
@@ -159,16 +172,23 @@ export function LandingPage() {
                 <Card className="h-full border-border/80 shadow-sm transition-shadow hover:shadow-md">
                   <CardHeader>
                     <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <ClipboardList className="h-5 w-5 text-primary" aria-hidden />
+                      <ClipboardList
+                        className="h-5 w-5 text-primary"
+                        aria-hidden
+                      />
                     </div>
-                    <CardTitle className="text-lg">Order &amp; transaction management</CardTitle>
+                    <CardTitle className="text-lg">
+                      Order &amp; transaction management
+                    </CardTitle>
                     <CardDescription className="text-base leading-relaxed">
-                      Log buyer requests, assign cooperatives, match farmers to quantities, and confirm
-                      deliveries—status stays visible end to end.
+                      Log buyer requests, assign cooperatives, match farmers to
+                      quantities, and confirm deliveries—status stays visible
+                      end to end.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground">
-                    Reduces lost referrals and keeps referral workflows out of group chats alone.
+                    Reduces lost referrals and keeps referral workflows out of
+                    group chats alone.
                   </CardContent>
                 </Card>
               </Reveal>
@@ -179,14 +199,18 @@ export function LandingPage() {
                     <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                       <BookOpen className="h-5 w-5 text-primary" aria-hidden />
                     </div>
-                    <CardTitle className="text-lg">FarmLedger accounting</CardTitle>
+                    <CardTitle className="text-lg">
+                      FarmLedger accounting
+                    </CardTitle>
                     <CardDescription className="text-base leading-relaxed">
-                      Sales, federation and coop fees, share-capital lines, loans, and printable farmer
-                      balance sheets—driven by completed deliveries.
+                      Sales, federation and coop fees, share-capital lines,
+                      loans, and printable farmer balance sheets—driven by
+                      completed deliveries.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground">
-                    Farmers get view-only clarity; officers stay accountable with persisted figures.
+                    Farmers get view-only clarity; officers stay accountable
+                    with persisted figures.
                   </CardContent>
                 </Card>
               </Reveal>
@@ -207,23 +231,28 @@ export function LandingPage() {
               </span>
             </div>
             <p className="mb-6 text-xs text-muted-foreground">
-              Illustrative strip until official partner logos are provided—no endorsement implied.
+              Illustrative strip until official partner logos are provided—no
+              endorsement implied.
             </p>
           </Reveal>
 
           <div className="relative overflow-hidden py-2">
             <div className="landing-marquee-track flex gap-10 py-2">
-              {[...PLACEHOLDER_PARTNERS, ...PLACEHOLDER_PARTNERS].map((p, i) => (
-                <div
-                  key={`${p.label}-${i}`}
-                  className="flex shrink-0 items-center gap-3 rounded-full border border-border bg-card px-5 py-2 shadow-sm"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-                    {p.abbr}
-                  </span>
-                  <span className="text-sm font-medium text-foreground">{p.label}</span>
-                </div>
-              ))}
+              {[...PLACEHOLDER_PARTNERS, ...PLACEHOLDER_PARTNERS].map(
+                (p, i) => (
+                  <div
+                    key={`${p.label}-${i}`}
+                    className="flex shrink-0 items-center gap-3 rounded-full border border-border bg-card px-5 py-2 shadow-sm"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+                      {p.abbr}
+                    </span>
+                    <span className="text-sm font-medium text-foreground">
+                      {p.label}
+                    </span>
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </section>

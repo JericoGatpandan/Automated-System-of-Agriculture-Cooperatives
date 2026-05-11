@@ -77,7 +77,7 @@ export function FederationFarmLedger() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Farm Ledger — Federation Overview
         </h1>
