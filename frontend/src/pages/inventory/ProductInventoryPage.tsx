@@ -1,22 +1,25 @@
+import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import { Badge } from "../../components/ui/badge";
-import { ScrollArea } from "../../components/ui/scroll-area";
+
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+  AlertTriangle,
+  Box,
+  Eye,
+  ImageIcon,
+  Loader2,
+  PackageSearch,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -32,6 +35,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -39,20 +45,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
 import {
-  AlertTriangle,
-  Box,
-  Eye,
-  ImageIcon,
-  Loader2,
-  PackageSearch,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  Users,
-} from "lucide-react";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import { Textarea } from "../../components/ui/textarea";
 
 const API_BASE = "http://localhost:8800/api";
 const API_ORIGIN = "http://localhost:8800";
@@ -451,8 +452,8 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
           current.quantity += Number(product.availableQuantity || 0);
           const farmerName = product.Farmer
             ? [product.Farmer.lastName, product.Farmer.firstName]
-                .filter(Boolean)
-                .join(", ")
+              .filter(Boolean)
+              .join(", ")
             : "—";
           if (!current.names.includes(farmerName)) {
             current.names.push(farmerName);
@@ -607,7 +608,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
       : "Manage products listed by farmers in your cooperative and prepare supply for orders.";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <div className="mb-6 flex items-center gap-3">
           <PackageSearch className="h-6 w-6 text-primary" />
@@ -792,9 +793,9 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
                   <PackageSearch className="mx-auto mb-4 h-12 w-12 text-muted-foreground/40" />
                   <p className="font-medium text-muted-foreground">
                     {search ||
-                    availability !== "all" ||
-                    category !== "all" ||
-                    secondaryFilter !== "all"
+                      availability !== "all" ||
+                      category !== "all" ||
+                      secondaryFilter !== "all"
                       ? "No products match your filters"
                       : "No products yet"}
                   </p>
@@ -1101,12 +1102,22 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
                               Total quantity:{" "}
                               {Number(entry.quantity || 0).toLocaleString()}
                             </p>
+
                           </div>
                         ))}
                       </div>
                     )}
                   </CardContent>
+                  <div className="flex flex-col px-4 gap-4">
+                    <p >This product has <span className="text-primary font-bold font">2</span> unassigned orders.</p>
+                    <Button className="px-4" size="sm">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Assign orders to Cooperative
+                    </Button>
+                  </div>
                 </Card>
+
+
               </div>
             </div>
           )}

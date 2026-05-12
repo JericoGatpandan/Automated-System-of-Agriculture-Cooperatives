@@ -248,7 +248,7 @@ export function AssignmentDetail() {
   const order = assignment.BuyerOrder;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

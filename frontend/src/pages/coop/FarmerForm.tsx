@@ -1,17 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import {
   Card, CardContent,
 } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 
 import {
-  UserCircle, Sprout, Building2, Check, ChevronLeft, ChevronRight, Loader2,
+  Building2, Check, ChevronLeft, ChevronRight, Loader2,
+  Sprout,
+  UserCircle,
 } from "lucide-react";
 
 const API = "http://localhost:8800/api/farmers";
@@ -133,7 +135,7 @@ export function FarmerForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Page header */}
         <h1 className="text-xl font-bold text-foreground mb-6">

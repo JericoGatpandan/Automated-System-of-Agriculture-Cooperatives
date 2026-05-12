@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { Banknote, ChevronLeft, FileText, Loader2, Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Link,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
-  useLocation,
 } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -17,17 +19,6 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import { Badge } from "../../components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
-import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -36,7 +27,7 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -44,9 +35,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { Loader2, ChevronLeft, FileText, Plus, Banknote } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Textarea } from "../../components/ui/textarea";
+import { useAuth } from "../../context/AuthContext";
 import { formatPhp, formatRate } from "../../lib/money";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const LEDGER = "http://localhost:8800/api/ledger";
 
@@ -403,7 +403,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         <Button variant="ghost" size="sm" className="mb-4 -ml-2" asChild>
           <Link to={backHref}>

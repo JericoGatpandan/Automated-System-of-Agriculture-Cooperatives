@@ -1,13 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
-import { Separator } from "../../components/ui/separator";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,21 +20,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Separator } from "../../components/ui/separator";
 
 import {
-  UserCircle,
-  Mail,
-  Shield,
-  Calendar,
+  AlertTriangle,
   Building2,
+  Calendar,
+  Hash,
+  KeyRound,
+  Loader2,
+  Mail,
   MapPin,
   Phone,
-  Hash,
+  Shield,
   Sprout,
-  KeyRound,
   Trash2,
-  AlertTriangle,
-  Loader2,
+  UserCircle,
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8800/api/profile";
@@ -197,7 +197,7 @@ export function ProfilePage() {
   const org = profile.organization;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="flex items-center gap-3 mb-8">

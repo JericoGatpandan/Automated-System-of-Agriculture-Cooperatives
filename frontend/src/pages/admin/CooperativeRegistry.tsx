@@ -1,12 +1,28 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Badge } from "../../components/ui/badge";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Table,
@@ -16,34 +32,19 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 import {
-  Plus,
-  Pencil,
-  Eye,
-  MoreVertical,
-  Building2,
-  Search,
-  Phone,
-  MapPin,
   AlertTriangle,
+  Building2,
   Loader2,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Phone,
+  Plus,
+  Search,
+  Trash,
+  Trash2
 } from "lucide-react";
 
 import {
@@ -253,7 +254,7 @@ export function CooperativeRegistry() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       {/* ── Content ── */}
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {/* Page Title */}
@@ -425,15 +426,16 @@ export function CooperativeRegistry() {
                                   <DropdownMenuItem
                                     onClick={() => openEdit(coop)}
                                   >
-                                    <Eye className="h-4 w-4 mr-2" />
+                                    <Pencil className="h-4 w-4 mr-2" />
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => openDelete(coop)}
                                     className="text-destructive focus:text-destructive"
                                   >
-                                    <Pencil className="h-4 w-4 mr-2" />
-                                    Delete
+                                    <Trash2 
+                                    className="h-4 w-4 mr-2" />
+                                    Deactivate
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>

@@ -1,19 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 import { Badge } from "../../components/ui/badge";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -29,9 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 
-import { Truck, Plus, Eye, Pencil, Loader2 } from "lucide-react";
+import { Eye, Loader2, Pencil, Plus, Truck } from "lucide-react";
 
 const API = "http://localhost:8800/api/deliveries";
 
@@ -130,7 +130,7 @@ export function DeliveryList() {
   }, [totalPages]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <Truck className="h-6 w-6 text-primary" />

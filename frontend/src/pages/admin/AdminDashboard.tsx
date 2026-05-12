@@ -1,12 +1,12 @@
+import { BookOpen, Building2, ShoppingCart, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
-import { Building2, Users, ShoppingCart, BookOpen } from "lucide-react";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       {/* Content */}
       <div className="w-full mx-auto px-6 py-8">
         <h1 className="text-xl font-bold text-foreground mb-2">Dashboard</h1>

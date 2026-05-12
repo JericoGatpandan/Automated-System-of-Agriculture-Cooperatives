@@ -1,22 +1,31 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "../../components/ui/card";
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger,
-} from "../../components/ui/tabs";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../components/ui/table";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "../../components/ui/tabs";
 
 import {
-  UserCircle, Sprout, Building2, CreditCard, ChevronLeft, Loader2, MapPin, Mail, Shield, Calendar,
+  Building2,
+  Calendar,
+  ChevronLeft,
+  CreditCard,
+  Loader2,
+  Mail,
+  MapPin,
+  Shield,
+  Sprout,
+  UserCircle,
 } from "lucide-react";
 
 const API = "http://localhost:8800/api/farmers";
@@ -105,7 +114,7 @@ export function FarmerDetail() {
   const fullName = [farmer.firstName, farmer.middleName, farmer.lastName, farmer.suffixName].filter(Boolean).join(" ");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">

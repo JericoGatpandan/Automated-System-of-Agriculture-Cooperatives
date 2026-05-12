@@ -1,10 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -20,18 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Loader2, ChevronLeft } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { formatPhp } from "../../lib/money";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const BASE = "http://localhost:8800/api/ledger";
 
@@ -160,7 +159,7 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
   }, [totalPages]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {mode === "admin" && (
           <Button

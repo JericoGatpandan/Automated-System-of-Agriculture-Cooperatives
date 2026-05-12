@@ -1,20 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
-import { Checkbox } from "../../components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { Checkbox } from "../../components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -36,17 +27,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
+import { Input } from "../../components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 
 import {
-  Users,
-  Plus,
-  Eye,
-  Pencil,
-  Trash2,
-  Search,
   AlertTriangle,
+  Eye,
   Loader2,
   MoreVertical,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Users,
 } from "lucide-react";
 
 const API = "http://localhost:8800/api/farmers";
@@ -190,7 +190,7 @@ export function CoopFarmerRegistry() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Page header */}
         <div className="flex items-center gap-3 mb-6">

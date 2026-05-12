@@ -1,7 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { SidebarNavItem } from "./SidebarNavItem";
-import { ScrollArea } from "../ui/scroll-area";
 import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
@@ -10,24 +8,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { ScrollArea } from "../ui/scroll-area";
+import { SidebarNavItem } from "./SidebarNavItem";
 
 import {
-  LayoutDashboard,
+  BarChart3,
+  BookOpen,
   Building2,
-  Users,
+  ChevronsUpDown,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
   PackageSearch,
   ShoppingCart,
   Truck,
-  BarChart3,
-  ClipboardList,
-  BookOpen,
-  LogOut,
   UserCircle,
-  ChevronsUpDown,
+  Users,
 } from "lucide-react";
 
-import logoImg from "../../assets/logo.png";
 import type { LucideIcon } from "lucide-react";
+import logoImg from "../../assets/logo.png";
 
 type SidebarNavEntry = {
   label: string;
@@ -99,7 +99,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <aside className="fixed top-0 left-0 z-40 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       {/* ── Header / Logo ── */}
       <div className="flex flex-col items-start gap-2 px-4 py-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

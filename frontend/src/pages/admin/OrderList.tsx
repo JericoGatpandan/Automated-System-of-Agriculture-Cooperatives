@@ -1,11 +1,25 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import {
   Table,
   TableBody,
@@ -14,30 +28,16 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 
 import {
-  ShoppingCart,
-  Plus,
   Eye,
-  Pencil,
-  X,
-  Search,
   Loader2,
   MoreVertical,
+  Pencil,
+  Plus,
+  Search,
+  ShoppingCart,
+  X,
 } from "lucide-react";
 
 import {
@@ -136,7 +136,7 @@ export function OrderList() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <ShoppingCart className="h-6 w-6 text-primary" />

@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { TablePaginationFooter } from "../../components/table-pagination-footer";
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { ScrollArea } from "../../components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -18,10 +19,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { formatPhp } from "../../lib/money";
-import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 const API = "http://localhost:8800/api/ledger/summary";
 
@@ -93,7 +92,7 @@ export function FederationFarmLedger() {
   const mono = "font-[family-name:var(--font-mono)] tabular-nums";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <h1 className="text-xl font-bold text-foreground mb-2">
           Farm Ledger — Federation Overview

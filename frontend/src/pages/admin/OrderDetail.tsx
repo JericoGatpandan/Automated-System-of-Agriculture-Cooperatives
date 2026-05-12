@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
-import { Progress } from "../../components/ui/progress";
+import { Button } from "../../components/ui/button";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "../../components/ui/card";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Progress } from "../../components/ui/progress";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../components/ui/select";
@@ -22,7 +22,12 @@ import {
 } from "../../components/ui/table";
 
 import {
-  ChevronLeft, Pencil, AlertTriangle, Trash2, Plus, ShoppingCart, Loader2, Package,
+  AlertTriangle,
+  ChevronLeft,
+  Loader2, Package,
+  Pencil,
+  Plus, ShoppingCart,
+  Trash2,
 } from "lucide-react";
 
 const API = "http://localhost:8800/api/orders";
@@ -164,7 +169,7 @@ export function OrderDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

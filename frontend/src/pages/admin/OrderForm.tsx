@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
 import {
   Card, CardContent, CardHeader, CardTitle,
 } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../../components/ui/select";
+import { Textarea } from "../../components/ui/textarea";
 
 import { ChevronLeft, Loader2, ShoppingCart } from "lucide-react";
 
@@ -103,7 +103,7 @@ export function OrderForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/orders")}>
