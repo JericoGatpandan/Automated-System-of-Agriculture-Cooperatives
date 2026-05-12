@@ -43,7 +43,6 @@ import {
   Phone,
   Plus,
   Search,
-  Trash,
   Trash2
 } from "lucide-react";
 
@@ -364,7 +363,7 @@ export function CooperativeRegistry() {
                           <TableHead>Phone</TableHead>
                           <TableHead>Officer Email</TableHead>
                           <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead className="text-right"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -372,8 +371,8 @@ export function CooperativeRegistry() {
                           <TableRow key={coop.primaryCoopID}>
                             <TableCell className="font-medium max-w-[250px]">
                               <div className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                                <span className="truncate">
+                                <Building2 className="h-4 w-4 text-foreground shrink-0 " />
+                                <span className="truncate font-bold" >
                                   {coop.coopName}
                                 </span>
                               </div>

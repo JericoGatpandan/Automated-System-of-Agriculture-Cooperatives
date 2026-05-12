@@ -1,4 +1,4 @@
-import { BookOpen, Building2, ShoppingCart, Users } from "lucide-react";
+import { BookOpen, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 
@@ -34,39 +34,49 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Farmer Registry — coming soon */}
-          <Card className="opacity-60 border-border" id="module-farmer-registry">
+          {/* Farmer Registry*/}
+          <Card
+            className="cursor-pointer transition-shadow hover:shadow-md border-border"
+            onClick={() => navigate("/admin/farmers")}
+            id="module-farmer-registry"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <Users className="h-5 w-5 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <CardTitle className="text-base">Farmer Registry</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                View farmer memberships across cooperatives. <em>Coming soon.</em>
+                View farmer memberships across cooperatives.
               </CardDescription>
             </CardContent>
           </Card>
 
-          {/* Order Management — coming soon */}
-          <Card className="opacity-60 border-border" id="module-order-management">
+          {/* Order Management*/}
+    
+           <Card
+            className="cursor-pointer transition-shadow hover:shadow-md border-border"
+            onClick={() => navigate("/admin/orders")}
+            id="module-order-management"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <CardTitle className="text-base">Order Management</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Buyer order intake, coop assignment, and delivery tracking. <em>Coming soon.</em>
+                Buyer order intake, coop assignment, and delivery tracking.
               </CardDescription>
             </CardContent>
           </Card>
+
 
           {/* FarmLedger */}
           <Card

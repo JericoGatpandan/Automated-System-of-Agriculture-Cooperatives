@@ -30,6 +30,7 @@ import {
 } from "../../components/ui/table";
 
 import {
+  ChevronsUpDown,
   Eye,
   Loader2,
   MoreVertical,
@@ -245,8 +246,9 @@ export function OrderList() {
                       <TableHead className="font-semibold text-muted-foreground">
                         Order #
                       </TableHead>
-                      <TableHead className="font-semibold text-muted-foreground">
+                      <TableHead className="font-semibold text-muted-foreground flex items-center gap-2">
                         Buyer
+                        <ChevronsUpDown className="h-3 w-3 mr-2 justify-center item-center"/>
                       </TableHead>
                       <TableHead className="font-semibold text-muted-foreground">
                         Company
@@ -271,7 +273,9 @@ export function OrderList() {
                   </TableHeader>
                   <TableBody>
                     {filtered.map((o) => (
-                      <TableRow key={o.orderID}>
+                      <TableRow key={o.orderID} onClick={() =>
+                                  navigate(`/admin/orders/${o.orderID}`)
+                                }>
                         <TableCell className="py-4 ">ORD-{o.orderID}</TableCell>
                         <TableCell className="py-4 font-semibold">
                           {o.buyerName}

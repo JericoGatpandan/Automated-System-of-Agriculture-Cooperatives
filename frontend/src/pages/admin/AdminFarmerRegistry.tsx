@@ -233,7 +233,9 @@ export function AdminFarmerRegistry() {
                               .join(", ") || "—";
 
                           return (
-                            <TableRow key={f.farmerID}>
+                            <TableRow key={f.farmerID} onClick={() =>
+                                    navigate(`/admin/farmers/${f.farmerID}`)
+                                  }>
                               <TableCell className="py-4 font-semibold">
                                 {f.lastName}, {f.firstName}
                                 {f.middleName ? ` ${f.middleName}` : ""}

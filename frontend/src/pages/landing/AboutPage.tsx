@@ -16,7 +16,7 @@ export function AboutPage() {
 
           <section className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
-              The <strong className="text-foreground font-medium">Accounting System of Agriculture Cooperatives (ASAC)</strong>{" "}
+              The <strong className="text-foreground font-medium">Automated System of Agriculture Cooperatives (ASAC)</strong>{" "}
               is a web-based platform developed for the{" "}
               <strong className="text-foreground font-medium">
                 Federation of Agriculture Cooperatives in Camarines Sur (FACCS)
