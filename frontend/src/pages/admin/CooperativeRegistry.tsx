@@ -36,7 +36,6 @@ import { TablePaginationFooter } from "../../components/table-pagination-footer"
 import {
   Plus,
   Pencil,
-  Trash2,
   Eye,
   MoreVertical,
   Building2,

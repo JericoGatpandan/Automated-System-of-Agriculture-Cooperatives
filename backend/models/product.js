@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       unitPrice: DataTypes.DECIMAL,
       availableQuantity: DataTypes.INTEGER,
       qualityGrade: DataTypes.STRING,
+      imagePath: DataTypes.TEXT,
       updatedAt: DataTypes.DATE,
       isDeleted: DataTypes.BOOLEAN,
     },

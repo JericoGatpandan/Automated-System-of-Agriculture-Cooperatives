@@ -112,6 +112,11 @@ Update this file after every meaningful implementation change.
   - Added a shared `TablePaginationFooter` component with range text, previous/next controls, and numbered pages.
   - Applied 10-row client-side pagination, sticky table headers, and scrollable table containers to the main list/detail tables across admin, cooperative, and ledger screens.
   - Verified with a successful `npm run build` in `frontend/`.
+- **Implemented Crop/Product Inventory**:
+  - Added `/api/products` backend routes for admin browsing plus cooperative product management, including crop type references and cooperative/farmer scope checks.
+  - Added optional `imagePath` support for products so crop images can use `frontend/public/crops` assets or uploaded data URLs with a fallback placeholder.
+  - Added the shared inventory page at `/admin/products` and `/coop/products` with search, filters, sorting, detail dialog, and cooperative edit/create/delete actions.
+  - Added sidebar navigation entries for Products in both admin and cooperative menus.
 
 ## In Progress
 

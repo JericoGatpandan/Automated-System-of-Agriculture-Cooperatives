@@ -266,18 +266,16 @@ export function OrderList() {
                       <TableHead className="font-semibold text-muted-foreground text-center">
                         Status
                       </TableHead>
-                      <TableHead className="font-semibold text-muted-foreground text-right">
-                        Actions
-                      </TableHead>
+                      <TableHead className="font-semibold text-muted-foreground text-right"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.map((o) => (
                       <TableRow key={o.orderID}>
+                        <TableCell className="py-4 ">ORD-{o.orderID}</TableCell>
                         <TableCell className="py-4 font-semibold">
-                          ORD-{o.orderID}
+                          {o.buyerName}
                         </TableCell>
-                        <TableCell className="py-4">{o.buyerName}</TableCell>
                         <TableCell className="py-4">
                           {o.buyerCompany || "—"}
                         </TableCell>

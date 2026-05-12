@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   Building2,
   Users,
+  PackageSearch,
   ShoppingCart,
   Truck,
   BarChart3,
@@ -53,8 +54,13 @@ const PROFILE_ROUTES: Record<string, string> = {
 // ── Navigation config per role (from 06-sidebar-navigation.md) ──
 const ADMIN_NAV: SidebarNavEntry[] = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/admin", exact: true },
-  { label: "Cooperative Registry", icon: Building2, route: "/admin/cooperatives" },
+  {
+    label: "Cooperative Registry",
+    icon: Building2,
+    route: "/admin/cooperatives",
+  },
   { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
+  { label: "Products", icon: PackageSearch, route: "/admin/products" },
   { label: "Order Management", icon: ShoppingCart, route: "/admin/orders" },
   { label: "Deliveries", icon: Truck, route: "/admin/deliveries" },
   { label: "Farm Ledger", icon: BarChart3, route: "/admin/farmledger" },
@@ -63,6 +69,7 @@ const ADMIN_NAV: SidebarNavEntry[] = [
 const OFFICER_NAV: SidebarNavEntry[] = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/coop", exact: true },
   { label: "Farmer Registry", icon: Users, route: "/coop/farmers" },
+  { label: "Products", icon: PackageSearch, route: "/coop/products" },
   { label: "Assignments", icon: ClipboardList, route: "/coop/assignments" },
   { label: "Farmer Ledger", icon: BookOpen, route: "/coop/farmledger" },
 ];
@@ -129,7 +136,10 @@ export function Sidebar() {
               id="sidebar-user-menu"
             >
               <UserCircle className="h-5 w-5 shrink-0 text-sidebar-foreground/70" />
-              <span className="truncate text-left flex-1 text-sidebar-foreground/80" title={user?.email}>
+              <span
+                className="truncate text-left flex-1 text-sidebar-foreground/80"
+                title={user?.email}
+              >
                 {user?.email}
               </span>
               <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/40" />
@@ -159,4 +169,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
