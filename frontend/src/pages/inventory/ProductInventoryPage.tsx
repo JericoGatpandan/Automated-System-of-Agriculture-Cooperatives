@@ -1130,7 +1130,11 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
               <div className="h-56 overflow-hidden rounded-2xl border border-border/70 bg-muted">
                 {selectedImagePreview || formData.imagePath ? (
                   <img
-                    src={selectedImagePreview || resolveImageSrc(formData.imagePath) || ""}
+                    src={
+                      selectedImagePreview ||
+                      resolveImageSrc(formData.imagePath) ||
+                      ""
+                    }
                     alt="Preview"
                     className="h-full w-full object-cover"
                   />
