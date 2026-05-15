@@ -1,8 +1,12 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Printer } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, FileText, Printer } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 
-// ─── Data ────────────────────────────────────────────────────────────────────
 
 const farmer = {
   name: "Juan R. dela Cruz",
@@ -18,12 +22,12 @@ const farmer = {
 
 const salesTransactions = [
   { order: "ORD-2026-001", date: "2026-01-15", crop: "Potatoes 500kg", gross: 40000, deductions: 2400, net: 37600 },
-  { order: "ORD-2025-012", date: "2025-12-10", crop: "Carrots 200kg",  gross: 18000, deductions: 1080, net: 16920 },
+  { order: "ORD-2025-012", date: "2025-12-10", crop: "Carrots 200kg", gross: 18000, deductions: 1080, net: 16920 },
 ];
 
 const commissions = [
-  { label: "Federation Fee (2% of Gross)",            amount: 1160 },
-  { label: "Cooperative Service Fee (3% of Gross)",   amount: 1740 },
+  { label: "Federation Fee (2% of Gross)", amount: 1160 },
+  { label: "Cooperative Service Fee (3% of Gross)", amount: 1740 },
   { label: "Share Capital Contribution (1% of Gross)", amount: 580 },
 ];
 
@@ -78,14 +82,68 @@ function InfoRow({ label, value }) {
   );
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
 
 export function FarmerBalanceSheet() {
   return (
-    
-    <div className="ml-74 min-h-screen bg-gray-50/50">
-        
 
+    <div className="ml-74 mr-4 mt-4 mb-4 min-h-screen bg-gray-50/50">
+      <div className="bg-white rounded-xl p-2.5 flex flex-col gap-2.5">
+
+        {/* ── Filters ─────────────────────────────────────────────────────────── */}
+        <div className="flex gap-3">
+
+          {/* Select Farmer */}
+          <div className="flex-1 flex flex-col gap-1.5">
+            <Label htmlFor="farmer-select">Select Farmer</Label>
+            <Select>
+              <SelectTrigger id="farmer-select" className="h-11">
+                <SelectValue placeholder="Choose a Farmer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bhfc-001">Juan R. dela Cruz</SelectItem>
+                {/* Add more farmers here */}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Select Period */}
+          <div className="flex-1 flex flex-col gap-1.5">
+            <Label htmlFor="period-input">Select Period</Label>
+            <div className="relative">
+              <Input
+                id="period-input"
+                type="text"
+                placeholder="MM/DD/YYYY – MM/DD/YYYY"
+                className="h-11 pr-9"
+              />
+              <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400 pointer-events-none" />
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── Actions ─────────────────────────────────────────────────────────── */}
+        <div className="flex gap-3">
+
+          <Button
+            className="flex-1 h-10 bg-green-900 hover:bg-green-800 text-white font-semibold text-base gap-1.5"
+            // onClick={onGenerate}
+          >
+            <FileText className="size-5 opacity-80" />
+            Generate Preview
+          </Button>
+
+          <Button
+            variant="outline"
+            className="flex-1 h-10 border-2 border-neutral-400 text-green-900 hover:border-green-900 hover:text-green-900 font-semibold text-base gap-1.5"
+            // onClick={onPrint}
+          >
+            <Printer className="size-5" />
+            Print / Download
+          </Button>
+
+        </div>
+      </div>
       {/* ── Top Bar ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-2.5 bg-gray-50 border-b border-gray-100">
         <span className="text-xs text-gray-400 font-sans">
@@ -117,13 +175,13 @@ export function FarmerBalanceSheet() {
 
         {/* Farmer Info */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 pb-5 border-b border-gray-200">
-          <InfoRow label="Farmer Name:"    value={farmer.name} />
-          <InfoRow label="Cooperative:"    value={farmer.cooperative} />
+          <InfoRow label="Farmer Name:" value={farmer.name} />
+          <InfoRow label="Cooperative:" value={farmer.cooperative} />
           <InfoRow label="Membership No.:" value={farmer.membershipNo} />
-          <InfoRow label="Full Name:"      value={farmer.cooperativeFullName} />
-          <InfoRow label="Address:"        value={farmer.address} />
-          <InfoRow label="Officer:"        value={farmer.officer} />
-          <InfoRow label="Farm Size:"      value={farmer.farmSize} />
+          <InfoRow label="Full Name:" value={farmer.cooperativeFullName} />
+          <InfoRow label="Address:" value={farmer.address} />
+          <InfoRow label="Officer:" value={farmer.officer} />
+          <InfoRow label="Farm Size:" value={farmer.farmSize} />
           <InfoRow label="Date Generated:" value={farmer.dateGenerated} />
         </div>
 
@@ -268,7 +326,7 @@ export function FarmerBalanceSheet() {
         {/* Signatures */}
         <div className="grid grid-cols-2 gap-8 pt-2 text-[12px]">
           {[
-            { name: farmer.name,    role: "Farmer-Member Signature / Thumb Mark" },
+            { name: farmer.name, role: "Farmer-Member Signature / Thumb Mark" },
             { name: farmer.officer, role: "Cooperative Officer Signature" },
           ].map((sig) => (
             <div key={sig.name} className="space-y-1 text-center">
