@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "root",
+    "username": "jerico",
     "password": "password",
     "database": "asac_db",
-    "host": "localhost",
+    "host": "172.21.170.110",
     "dialect": "mysql"
   },
   "test": {

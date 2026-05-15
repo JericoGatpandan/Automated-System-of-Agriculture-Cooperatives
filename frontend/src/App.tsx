@@ -167,7 +167,7 @@ function App() {
             {/* Legacy /register redirect */}
             <Route
               path="/register"
-              element={<Navigate to="/admin/register" replace />}
+              element={<Register />}
             />
 
             {/* Fallback → public landing */}
