@@ -171,6 +171,120 @@ router.get(
   },
 );
 
+// POST /api/products/crop-types — Admin: create crop type
+router.post(
+  "/crop-types",
+  authenticate,
+  authorize("Admin"),
+  async (req, res) => {
+    try {
+      const { cropName, category } = req.body;
+      if (!cropName || !category) {
+        return res
+          .status(400)
+          .json({ message: "Crop name and category are required" });
+      }
+
+      const existing = await db.CropType.findOne({
+        where: { cropName: cropName.trim() },
+      });
+
+      if (existing) {
+        return res.status(400).json({ message: "Crop name already exists" });
+      }
+
+      const cropType = await db.CropType.create({
+        cropName: cropName.trim(),
+        category: category.trim(),
+      });
+
+      res
+        .status(201)
+        .json({ message: "Crop type created successfully", cropType });
+    } catch (err) {
+      console.error("Create crop type error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// PUT /api/products/crop-types/:id — Admin: update crop type
+router.put(
+  "/crop-types/:id",
+  authenticate,
+  authorize("Admin"),
+  async (req, res) => {
+    try {
+      const { cropName, category } = req.body;
+      const cropType = await db.CropType.findByPk(req.params.id);
+
+      if (!cropType) {
+        return res.status(404).json({ message: "Crop type not found" });
+      }
+
+      if (cropName) {
+        const existing = await db.CropType.findOne({
+          where: {
+            cropName: cropName.trim(),
+            cropTypeID: { [Op.ne]: req.params.id },
+          },
+        });
+        if (existing) {
+          return res.status(400).json({ message: "Crop name already exists" });
+        }
+      }
+
+      await cropType.update({
+        cropName: cropName ? cropName.trim() : cropType.cropName,
+        category: category ? category.trim() : cropType.category,
+      });
+
+      res.json({ message: "Crop type updated successfully", cropType });
+    } catch (err) {
+      console.error("Update crop type error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
+// DELETE /api/products/crop-types/:id — Admin: delete crop type
+router.delete(
+  "/crop-types/:id",
+  authenticate,
+  authorize("Admin"),
+  async (req, res) => {
+    try {
+      const cropType = await db.CropType.findByPk(req.params.id);
+      if (!cropType) {
+        return res.status(404).json({ message: "Crop type not found" });
+      }
+
+      const productCount = await db.Product.count({
+        where: { cropTypeID: req.params.id },
+      });
+
+      let orderCount = 0;
+      if (db.BuyerOrder) {
+        orderCount = await db.BuyerOrder.count({
+          where: { cropTypeID: req.params.id },
+        });
+      }
+
+      if (productCount > 0 || orderCount > 0) {
+        return res
+          .status(400)
+          .json({ message: "Cannot delete crop type because it is in use" });
+      }
+
+      await cropType.destroy();
+      res.json({ message: "Crop type deleted successfully" });
+    } catch (err) {
+      console.error("Delete crop type error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
+
 // GET /api/products — Admin: browse all products
 router.get("/", authenticate, authorize("Admin"), async (req, res) => {
   try {

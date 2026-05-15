@@ -26,7 +26,10 @@ Allow FACCS Admins to manage the master list of Crop Types (e.g., Rice, Corn, Ma
 
 ## UX Expectations
 
-- A clean modal/dialog for creating and editing a Crop Type.
+- A clean form (dialog/drawer) for creating and editing a Crop Type.
+- it should be in the product inventory page, with a button to open the modal/drawer (for admin mode).
+- make it simple dont make it too complicated. 
+- and should have a list of crop types with corp names and categories (e.g., Grains, Vegetables, Fruits) - in a table format.
 - Input validation (e.g., required fields, duplicate name error handling).
 - Non-blocking error messaging if the creation fails (e.g., "Crop name already exists").
 - Only visible to the FACCS Admin (not Cooperative Officers).
@@ -48,3 +51,5 @@ Referencing `@context\database\` / backend models (`croptype.js`):
 - Admin can delete crop types, provided they are not referenced by existing products. General predefined categories remain in the system's dropdowns even if unused.
 - Cooperative Officers do not see the option to manage crop types.
 - The UI properly handles loading states and potential API errors.
+- It should still align with the design system in `01-design-system.md` and `ui-context.md`.
+- It should still follow the workflow of the app as a whole.

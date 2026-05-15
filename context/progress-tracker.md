@@ -121,6 +121,11 @@ Update this file after every meaningful implementation change.
   - Added a reusable PSGC location selector with cached city/municipality and barangay lookups using PSGC codes.
   - Integrated the selector into farmer registration and cooperative registry forms with loading and error states.
 
+- **Implemented Crop Type Management**:
+  - Backend: Added Admin-only `POST`, `PUT`, and `DELETE` endpoints for `/api/products/crop-types`. Included duplicate name validation and dependency checks (blocked if referenced by Product/BuyerOrder).
+  - Frontend: Developed `CropTypeManagementDialog` component as a clean modal dialog for FACCS Admins, displaying a master reference table with an add/edit form.
+  - Integrated into `ProductInventoryPage` via the "Manage Crop Types" button for admins.
+
 ## In Progress
 
 - None.
