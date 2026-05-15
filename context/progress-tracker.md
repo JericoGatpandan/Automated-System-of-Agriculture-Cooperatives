@@ -5,6 +5,7 @@ Update this file after every meaningful implementation change.
 ## Current Phase
 
 - **Module Implementation**: Building core modules against the ASAC spec.
+- **Database Optimization**: Offloading business logic and aggregation to MySQL (Views, Triggers, Procedures).
 
 ## Current Goal
 
