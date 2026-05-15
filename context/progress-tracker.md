@@ -117,6 +117,9 @@ Update this file after every meaningful implementation change.
   - Added optional `imagePath` support for products so crop images can use `frontend/public/crops` assets or uploaded data URLs with a fallback placeholder.
   - Added the shared inventory page at `/admin/products` and `/coop/products` with search, filters, sorting, detail dialog, and cooperative edit/create/delete actions.
   - Added sidebar navigation entries for Products in both admin and cooperative menus.
+- **Implemented PSGC Location Lookup (Frontend)**:
+  - Added a reusable PSGC location selector with cached city/municipality and barangay lookups using PSGC codes.
+  - Integrated the selector into farmer registration and cooperative registry forms with loading and error states.
 
 ## In Progress
 

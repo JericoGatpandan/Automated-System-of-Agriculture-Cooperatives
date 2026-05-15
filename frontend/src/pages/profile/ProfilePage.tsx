@@ -58,7 +58,8 @@ interface ProfileOrganization {
   lastName?: string;
   suffixName?: string;
   farmName?: string;
-  farmLocation?: string;
+  municipality?: string;
+  barangay?: string;
   cooperatives?: { coopName: string; status: string; joinedDate: string }[];
 }
 
@@ -134,7 +135,7 @@ export function ProfilePage() {
       setConfirmPassword("");
     } catch (err: any) {
       setPasswordError(
-        err.response?.data?.message || "Failed to change password"
+        err.response?.data?.message || "Failed to change password",
       );
     } finally {
       setPasswordLoading(false);
@@ -153,7 +154,7 @@ export function ProfilePage() {
       navigate("/login");
     } catch (err: any) {
       setDeleteError(
-        err.response?.data?.message || "Failed to deactivate account"
+        err.response?.data?.message || "Failed to deactivate account",
       );
     } finally {
       setDeleteLoading(false);
@@ -184,7 +185,12 @@ export function ProfilePage() {
               <p className="text-sm text-destructive">
                 {error || "Profile not found"}
               </p>
-              <Button variant="outline" size="sm" className="mt-2" onClick={fetchProfile}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={fetchProfile}
+              >
                 Retry
               </Button>
             </CardContent>
@@ -288,9 +294,7 @@ export function ProfilePage() {
                   <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium">
-                      {org.phone || "—"}
-                    </p>
+                    <p className="text-sm font-medium">{org.phone || "—"}</p>
                   </div>
                 </div>
                 <Separator />
@@ -323,7 +327,12 @@ export function ProfilePage() {
                   <div>
                     <p className="text-xs text-muted-foreground">Full Name</p>
                     <p className="text-sm font-medium">
-                      {[org.firstName, org.middleName, org.lastName, org.suffixName]
+                      {[
+                        org.firstName,
+                        org.middleName,
+                        org.lastName,
+                        org.suffixName,
+                      ]
                         .filter(Boolean)
                         .join(" ")}
                     </p>
@@ -334,9 +343,7 @@ export function ProfilePage() {
                   <Sprout className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Farm Name</p>
-                    <p className="text-sm font-medium">
-                      {org.farmName || "—"}
-                    </p>
+                    <p className="text-sm font-medium">{org.farmName || "—"}</p>
                   </div>
                 </div>
                 <Separator />
@@ -347,7 +354,9 @@ export function ProfilePage() {
                       Farm Location
                     </p>
                     <p className="text-sm font-medium">
-                      {org.farmLocation || "—"}
+                      {org.municipality && org.barangay
+                        ? `${org.barangay}, ${org.municipality}`
+                        : "—"}
                     </p>
                   </div>
                 </div>
@@ -368,7 +377,9 @@ export function ProfilePage() {
                               </span>
                               <Badge
                                 variant={
-                                  c.status === "active" ? "outline" : "secondary"
+                                  c.status === "active"
+                                    ? "outline"
+                                    : "secondary"
                                 }
                                 className="text-xs"
                               >

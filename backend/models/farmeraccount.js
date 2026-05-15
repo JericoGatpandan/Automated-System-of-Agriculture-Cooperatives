@@ -37,10 +37,12 @@ module.exports = (sequelize, DataTypes) => {
       primaryCoopID: DataTypes.INTEGER,
       createdDate: DataTypes.DATE,
       status: DataTypes.STRING,
+      updatedAt: DataTypes.DATE,
     },
     {
       sequelize,
       modelName: "FarmerAccount",
+      timestamps: false,
     },
   );
   return FarmerAccount;

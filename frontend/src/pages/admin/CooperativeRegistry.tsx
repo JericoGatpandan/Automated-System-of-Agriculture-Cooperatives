@@ -24,6 +24,8 @@ import {
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { ScrollArea } from "../../components/ui/scroll-area";
+import { LocationSelector } from "../../components/location/LocationSelector";
+import type { LocationValue } from "../../components/location/LocationSelector";
 import {
   Table,
   TableBody,
@@ -43,7 +45,7 @@ import {
   Phone,
   Plus,
   Search,
-  Trash2
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -75,6 +77,8 @@ interface CoopFormData {
   coopName: string;
   barangay: string;
   municipality: string;
+  barangayCode: string;
+  municipalityCode: string;
   phone: string;
   registrationNumber: string;
   officerEmail: string;
@@ -85,6 +89,8 @@ const emptyForm: CoopFormData = {
   coopName: "",
   barangay: "",
   municipality: "",
+  barangayCode: "",
+  municipalityCode: "",
   phone: "",
   registrationNumber: "",
   officerEmail: "",
@@ -229,6 +235,8 @@ export function CooperativeRegistry() {
       coopName: coop.coopName,
       barangay: coop.barangay,
       municipality: coop.municipality,
+      barangayCode: "",
+      municipalityCode: "",
       phone: coop.phone || "",
       registrationNumber: coop.registrationNumber,
       officerEmail: "",
@@ -250,6 +258,16 @@ export function CooperativeRegistry() {
     setFormData(emptyForm);
     setFormError("");
     setCreateOpen(true);
+  };
+
+  const handleLocationChange = (next: LocationValue) => {
+    setFormData((current) => ({
+      ...current,
+      municipality: next.municipalityName,
+      barangay: next.barangayName,
+      municipalityCode: next.municipalityCode,
+      barangayCode: next.barangayCode,
+    }));
   };
 
   return (
@@ -372,7 +390,7 @@ export function CooperativeRegistry() {
                             <TableCell className="font-medium max-w-[250px]">
                               <div className="flex items-center gap-2">
                                 <Building2 className="h-4 w-4 text-foreground shrink-0 " />
-                                <span className="truncate font-bold" >
+                                <span className="truncate font-bold">
                                   {coop.coopName}
                                 </span>
                               </div>
@@ -432,8 +450,7 @@ export function CooperativeRegistry() {
                                     onClick={() => openDelete(coop)}
                                     className="text-destructive focus:text-destructive"
                                   >
-                                    <Trash2 
-                                    className="h-4 w-4 mr-2" />
+                                    <Trash2 className="h-4 w-4 mr-2" />
                                     Deactivate
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -480,30 +497,15 @@ export function CooperativeRegistry() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="create-barangay">Barangay *</Label>
-                <Input
-                  id="create-barangay"
-                  placeholder="e.g. Poblacion"
-                  value={formData.barangay}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, barangay: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="create-municipality">Municipality *</Label>
-                <Input
-                  id="create-municipality"
-                  placeholder="e.g. Pili"
-                  value={formData.municipality}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, municipality: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+            <LocationSelector
+              value={{
+                municipalityCode: formData.municipalityCode,
+                municipalityName: formData.municipality,
+                barangayCode: formData.barangayCode,
+                barangayName: formData.barangay,
+              }}
+              onChange={handleLocationChange}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -622,28 +624,15 @@ export function CooperativeRegistry() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-barangay">Barangay</Label>
-                <Input
-                  id="edit-barangay"
-                  value={formData.barangay}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, barangay: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-municipality">Municipality</Label>
-                <Input
-                  id="edit-municipality"
-                  value={formData.municipality}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, municipality: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+            <LocationSelector
+              value={{
+                municipalityCode: formData.municipalityCode,
+                municipalityName: formData.municipality,
+                barangayCode: formData.barangayCode,
+                barangayName: formData.barangay,
+              }}
+              onChange={handleLocationChange}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">

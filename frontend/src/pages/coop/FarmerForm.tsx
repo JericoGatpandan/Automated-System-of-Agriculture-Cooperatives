@@ -4,14 +4,18 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import {
-  Card, CardContent,
-} from "../../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { LocationSelector } from "../../components/location/LocationSelector";
+import type { LocationValue } from "../../components/location/LocationSelector";
 
 import {
-  Building2, Check, ChevronLeft, ChevronRight, Loader2,
+  Building2,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
   Sprout,
   UserCircle,
 } from "lucide-react";
@@ -33,13 +37,24 @@ interface FormData {
   email: string;
   password: string;
   farmName: string;
-  farmLocation: string;
+  municipality: string;
+  barangay: string;
+  municipalityCode: string;
+  barangayCode: string;
 }
 
 const emptyForm: FormData = {
-  firstName: "", middleName: "", lastName: "", suffixName: "",
-  email: "", password: "",
-  farmName: "", farmLocation: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  suffixName: "",
+  email: "",
+  password: "",
+  farmName: "",
+  municipality: "",
+  barangay: "",
+  municipalityCode: "",
+  barangayCode: "",
 };
 
 export function FarmerForm() {
@@ -69,7 +84,10 @@ export function FarmerForm() {
           email: f.User?.email || "",
           password: "",
           farmName: f.farmName || "",
-          farmLocation: f.farmLocation || "",
+          municipality: f.municipality || "",
+          barangay: f.barangay || "",
+          municipalityCode: "",
+          barangayCode: "",
         });
       } catch {
         setError("Failed to load farmer data");
@@ -79,18 +97,33 @@ export function FarmerForm() {
     })();
   }, [id, isEdit]);
 
-  const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm({ ...form, [field]: e.target.value });
+  const set =
+    (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm({ ...form, [field]: e.target.value });
 
   // Step validation
   const canProceed = () => {
     if (step === 0) {
       if (!form.firstName || !form.lastName) return false;
-      if (!isEdit && (!form.email || !form.password || form.password.length < 8)) return false;
+      if (
+        !isEdit &&
+        (!form.email || !form.password || form.password.length < 8)
+      )
+        return false;
       return true;
     }
-    if (step === 1) return !!form.farmLocation;
+    if (step === 1) return !!(form.municipalityCode && form.barangayCode);
     return true;
+  };
+
+  const handleLocationChange = (next: LocationValue) => {
+    setForm((current) => ({
+      ...current,
+      municipality: next.municipalityName,
+      barangay: next.barangayName,
+      municipalityCode: next.municipalityCode,
+      barangayCode: next.barangayCode,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -104,7 +137,8 @@ export function FarmerForm() {
           lastName: form.lastName,
           suffixName: form.suffixName || null,
           farmName: form.farmName || null,
-          farmLocation: form.farmLocation,
+          municipality: form.municipality,
+          barangay: form.barangay,
         });
       } else {
         await axios.post(API, {
@@ -115,7 +149,8 @@ export function FarmerForm() {
           email: form.email,
           password: form.password,
           farmName: form.farmName || null,
-          farmLocation: form.farmLocation,
+          municipality: form.municipality,
+          barangay: form.barangay,
         });
       }
       navigate("/coop/farmers");
@@ -157,18 +192,26 @@ export function FarmerForm() {
                       isDone
                         ? "bg-primary border-primary text-primary-foreground"
                         : isActive
-                        ? "border-primary text-primary bg-primary/10"
-                        : "border-muted-foreground/30 text-muted-foreground/50"
+                          ? "border-primary text-primary bg-primary/10"
+                          : "border-muted-foreground/30 text-muted-foreground/50"
                     }`}
                   >
-                    {isDone ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                    {isDone ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Icon className="h-4 w-4" />
+                    )}
                   </div>
-                  <span className={`text-xs mt-1.5 text-center ${isActive ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                  <span
+                    className={`text-xs mt-1.5 text-center ${isActive ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+                  >
                     {s.label}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`h-0.5 flex-1 -mt-5 ${i < step ? "bg-primary" : "bg-muted-foreground/20"}`} />
+                  <div
+                    className={`h-0.5 flex-1 -mt-5 ${i < step ? "bg-primary" : "bg-muted-foreground/20"}`}
+                  />
                 )}
               </div>
             );
@@ -184,35 +227,69 @@ export function FarmerForm() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="firstName">First Name *</Label>
-                    <Input id="firstName" value={form.firstName} onChange={set("firstName")} placeholder="e.g. Juan" />
+                    <Input
+                      id="firstName"
+                      value={form.firstName}
+                      onChange={set("firstName")}
+                      placeholder="e.g. Juan"
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="middleName">Middle Name</Label>
-                    <Input id="middleName" value={form.middleName} onChange={set("middleName")} placeholder="e.g. Reyes" />
+                    <Input
+                      id="middleName"
+                      value={form.middleName}
+                      onChange={set("middleName")}
+                      placeholder="e.g. Reyes"
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="lastName">Last Name *</Label>
-                    <Input id="lastName" value={form.lastName} onChange={set("lastName")} placeholder="e.g. Dela Cruz" />
+                    <Input
+                      id="lastName"
+                      value={form.lastName}
+                      onChange={set("lastName")}
+                      placeholder="e.g. Dela Cruz"
+                    />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="suffixName">Suffix</Label>
-                    <Input id="suffixName" value={form.suffixName} onChange={set("suffixName")} placeholder="e.g. Jr., Sr." />
+                    <Input
+                      id="suffixName"
+                      value={form.suffixName}
+                      onChange={set("suffixName")}
+                      placeholder="e.g. Jr., Sr."
+                    />
                   </div>
                 </div>
                 {!isEdit && (
                   <>
                     <div className="border-t pt-4 mt-2">
-                      <p className="text-sm font-medium mb-3 text-muted-foreground">Login Credentials</p>
+                      <p className="text-sm font-medium mb-3 text-muted-foreground">
+                        Login Credentials
+                      </p>
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input id="email" type="email" value={form.email} onChange={set("email")} placeholder="e.g. farmer@email.ph" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={form.email}
+                        onChange={set("email")}
+                        placeholder="e.g. farmer@email.ph"
+                      />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="password">Password *</Label>
-                      <Input id="password" type="password" value={form.password} onChange={set("password")} placeholder="Minimum 8 characters" />
+                      <Input
+                        id="password"
+                        type="password"
+                        value={form.password}
+                        onChange={set("password")}
+                        placeholder="Minimum 8 characters"
+                      />
                     </div>
                   </>
                 )}
@@ -224,12 +301,23 @@ export function FarmerForm() {
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="farmName">Farm Name</Label>
-                  <Input id="farmName" value={form.farmName} onChange={set("farmName")} placeholder="e.g. Dela Cruz Farm" />
+                  <Input
+                    id="farmName"
+                    value={form.farmName}
+                    onChange={set("farmName")}
+                    placeholder="e.g. Dela Cruz Farm"
+                  />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="farmLocation">Farm Location *</Label>
-                  <Input id="farmLocation" value={form.farmLocation} onChange={set("farmLocation")} placeholder="e.g. Bula, CamSur" />
-                </div>
+                <LocationSelector
+                  layout="stack"
+                  value={{
+                    municipalityCode: form.municipalityCode,
+                    municipalityName: form.municipality,
+                    barangayCode: form.barangayCode,
+                    barangayName: form.barangay,
+                  }}
+                  onChange={handleLocationChange}
+                />
               </div>
             )}
 
@@ -242,12 +330,22 @@ export function FarmerForm() {
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Your Cooperative</span>
+                    <span className="text-sm font-medium">
+                      Your Cooperative
+                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Joined: {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    Joined:{" "}
+                    {new Date().toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </p>
-                  <Badge variant="outline" className="border-green-500/50 text-green-700 bg-green-50 text-xs">
+                  <Badge
+                    variant="outline"
+                    className="border-green-500/50 text-green-700 bg-green-50 text-xs"
+                  >
                     active
                   </Badge>
                 </div>
@@ -258,11 +356,20 @@ export function FarmerForm() {
             {step === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-semibold mb-2">Personal Information</h3>
+                  <h3 className="text-sm font-semibold mb-2">
+                    Personal Information
+                  </h3>
                   <div className="bg-muted/50 rounded-lg p-4 grid grid-cols-2 gap-y-2 text-sm">
                     <span className="text-muted-foreground">Name</span>
                     <span className="font-medium">
-                      {[form.firstName, form.middleName, form.lastName, form.suffixName].filter(Boolean).join(" ")}
+                      {[
+                        form.firstName,
+                        form.middleName,
+                        form.lastName,
+                        form.suffixName,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     </span>
                     {!isEdit && (
                       <>
@@ -277,14 +384,20 @@ export function FarmerForm() {
                   <div className="bg-muted/50 rounded-lg p-4 grid grid-cols-2 gap-y-2 text-sm">
                     <span className="text-muted-foreground">Farm Name</span>
                     <span className="font-medium">{form.farmName || "—"}</span>
-                    <span className="text-muted-foreground">Location</span>
-                    <span className="font-medium">{form.farmLocation}</span>
+                    <span className="text-muted-foreground">Municipality</span>
+                    <span className="font-medium">
+                      {form.municipality || "—"}
+                    </span>
+                    <span className="text-muted-foreground">Barangay</span>
+                    <span className="font-medium">{form.barangay || "—"}</span>
                   </div>
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold mb-2">Cooperative</h3>
                   <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                    <span className="text-muted-foreground">Auto-assigned to your cooperative</span>
+                    <span className="text-muted-foreground">
+                      Auto-assigned to your cooperative
+                    </span>
                   </div>
                 </div>
 
@@ -298,7 +411,9 @@ export function FarmerForm() {
         <div className="flex justify-between mt-6">
           <Button
             variant="outline"
-            onClick={() => step === 0 ? navigate("/coop/farmers") : setStep(step - 1)}
+            onClick={() =>
+              step === 0 ? navigate("/coop/farmers") : setStep(step - 1)
+            }
             disabled={loading}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -311,11 +426,20 @@ export function FarmerForm() {
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={loading} id="submit-farmer-btn">
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              id="submit-farmer-btn"
+            >
               {loading ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{isEdit ? "Saving…" : "Registering…"}</>
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {isEdit ? "Saving…" : "Registering…"}
+                </>
+              ) : isEdit ? (
+                "Save Changes"
               ) : (
-                isEdit ? "Save Changes" : "Register Farmer"
+                "Register Farmer"
               )}
             </Button>
           )}

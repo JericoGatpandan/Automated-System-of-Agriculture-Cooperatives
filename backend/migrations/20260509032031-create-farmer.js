@@ -34,7 +34,10 @@ module.exports = {
       farmName: {
         type: Sequelize.STRING,
       },
-      farmLocation: {
+      municipality: {
+        type: Sequelize.STRING,
+      },
+      barangay: {
         type: Sequelize.STRING,
       },
       isDeleted: {
