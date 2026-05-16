@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
+import { AppHeader } from "./AppHeader";
 import { Button } from "../ui/button";
 import {
   Sheet,
@@ -44,10 +45,13 @@ export function AppShell({ children }: AppShellProps) {
         </SheetContent>
       </Sheet>
 
-      {/* ── Main Content ── */}
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+      {/* ── Main Content Area ── */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <AppHeader />
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

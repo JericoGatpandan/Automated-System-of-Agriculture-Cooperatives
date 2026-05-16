@@ -12,7 +12,7 @@ const router = Router();
  * Admin Dashboard - Returns overall stats from vw_admin_dashboard_stats
  * and the 5 most recent BuyerOrders.
  */
-router.get("/admin", authenticate, authorize(["Admin"]), async (req, res) => {
+router.get("/admin", authenticate, authorize("Admin"), async (req, res) => {
   try {
     const statsResult = await db.sequelize.query(
       "SELECT * FROM vw_admin_dashboard_stats LIMIT 1",
@@ -49,7 +49,7 @@ router.get("/admin", authenticate, authorize(["Admin"]), async (req, res) => {
  * Coop Dashboard - Returns stats for specific coop from vw_coop_dashboard_stats
  * and the 5 most recent CoopAssignments.
  */
-router.get("/coop/:id", authenticate, authorize(["Admin", "Officer"]), async (req, res) => {
+router.get("/coop/:id", authenticate, authorize("Admin", "Officer"), async (req, res) => {
   try {
     const { id } = req.params;
     

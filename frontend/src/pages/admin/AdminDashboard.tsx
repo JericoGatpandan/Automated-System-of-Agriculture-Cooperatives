@@ -9,6 +9,7 @@ import {
   PlusCircle, 
   UserPlus, 
   FileText,
+  MessageSquare,
   Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
@@ -51,7 +52,7 @@ export function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("asac_token");
         const res = await axios.get("http://localhost:8800/api/dashboard/admin", {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -148,6 +149,10 @@ export function AdminDashboard() {
             <Button variant="outline" onClick={() => navigate("/admin/register")} className="gap-2">
               <UserPlus className="h-4 w-4" />
               Register Officer
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/admin/requests")} className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Partnership Inquiries
             </Button>
             <Button variant="outline" onClick={() => navigate("/admin/farmledger")} className="gap-2">
               <FileText className="h-4 w-4" />

@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./components/layout/AppShell";
 import { TooltipProvider } from "./components/ui/tooltip";
+import { Toaster } from "./components/ui/sonner";
 
 import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
@@ -12,6 +13,7 @@ import { CoopDashboard } from "./pages/coop/CoopDashboard";
 import { FarmerDashboard } from "./pages/farmer/FarmerDashboard";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { AdminFarmerRegistry } from "./pages/admin/AdminFarmerRegistry";
+import { AdminRequests } from "./pages/admin/AdminRequests";
 import { CoopFarmerRegistry } from "./pages/coop/CoopFarmerRegistry";
 import { FarmerForm } from "./pages/coop/FarmerForm";
 import { FarmerDetail } from "./pages/coop/FarmerDetail";
@@ -57,6 +59,7 @@ function App() {
                         element={<CooperativeRegistry />}
                       />
                       <Route path="register" element={<Register />} />
+                      <Route path="requests" element={<AdminRequests />} />
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="farmers" element={<AdminFarmerRegistry />} />
                       <Route path="farmers/:id" element={<FarmerDetail />} />
@@ -174,6 +177,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
+        <Toaster position="top-right" richColors />
       </TooltipProvider>
     </AuthProvider>
   );

@@ -58,7 +58,7 @@ export function CoopDashboard() {
       // Assuming user object has primaryCoopID or it's fetched via profile context
       // For this prototype, we'll fetch the user's coop ID first, or pass a default if not fully implemented in AuthContext
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("asac_token");
         // Temp mock: assuming user.primaryCoopID is 1 for now if not present, in a real app this comes from profile
         const coopId = user?.primaryCoopID || 1; 
         

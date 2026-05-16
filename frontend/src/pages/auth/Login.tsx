@@ -127,11 +127,11 @@ export function Login() {
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
-            <div className="size- inline-flex justify-center items-center">
-              <div className="space-y-2">Don’t have an account?</div>
-              <div data-icon-left="False" data-icon-right="False" data-size="Large" data-state="Default" data-type="Tertiary" className="h-10 px-4 py-2 rounded-lg flex justify-start items-center gap-1">
-                <div  onClick={() => navigate(`/register`)} className="text-primary">Request Access</div>
-              </div>
+            <div className="inline-flex justify-center items-center gap-2 mt-4 w-full">
+              <div className="text-sm text-muted-foreground">Not yet part of the federation?</div>
+              <Button variant="link" onClick={() => navigate("/register")} className="p-0 h-auto text-primary">
+                Join FACCS
+              </Button>
             </div>
           </CardContent>
         </Card>

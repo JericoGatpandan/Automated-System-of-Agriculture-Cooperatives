@@ -15,14 +15,11 @@ import {
   BarChart3,
   BookOpen,
   Building2,
-  ChevronsUpDown,
   ClipboardList,
   LayoutDashboard,
-  LogOut,
   PackageSearch,
   ShoppingCart,
   Truck,
-  UserCircle,
   Users,
 } from "lucide-react";
 
@@ -35,6 +32,7 @@ type SidebarNavEntry = {
   route: string;
   exact?: boolean;
   disabled?: boolean;
+  children?: { label: string; route: string }[];
 };
 
 // ── Role label mapping ──
@@ -58,6 +56,9 @@ const ADMIN_NAV: SidebarNavEntry[] = [
     label: "Cooperative Registry",
     icon: Building2,
     route: "/admin/cooperatives",
+    children: [
+      { label: "Partnership Inquiries", route: "/admin/requests" }
+    ]
   },
   { label: "Farmer Registry", icon: Users, route: "/admin/farmers" },
   { label: "Products", icon: PackageSearch, route: "/admin/products" },
@@ -91,12 +92,6 @@ export function Sidebar() {
 
   const role = user?.role ?? "Admin";
   const navItems = NAV_BY_ROLE[role] ?? [];
-  const profileRoute = PROFILE_ROUTES[role] ?? "/admin/profile";
-
-  const handleSignOut = () => {
-    logout();
-    navigate("/login");
-  };
 
   return (
     <aside className="fixed top-0 left-0 z-40 flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
@@ -122,50 +117,12 @@ export function Sidebar() {
               route={item.route}
               disabled={item.disabled}
               exact={item.exact}
+              children={item.children}
             />
           ))}
         </nav>
       </ScrollArea>
 
-      {/* ── User Footer (DropdownMenu) ── */}
-      <div className="border-t border-sidebar-border px-3 py-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-sidebar-accent/50"
-              id="sidebar-user-menu"
-            >
-              <UserCircle className="h-5 w-5 shrink-0 text-sidebar-foreground/70" />
-              <span
-                className="truncate text-left flex-1 text-sidebar-foreground/80"
-                title={user?.email}
-              >
-                {user?.email}
-              </span>
-              <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/40" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="top" className="w-56">
-            <DropdownMenuItem
-              onClick={() => navigate(profileRoute)}
-              className="cursor-pointer"
-              id="menu-profile"
-            >
-              <UserCircle className="h-4 w-4 mr-2" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleSignOut}
-              className="cursor-pointer text-destructive focus:text-destructive"
-              id="menu-sign-out"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
     </aside>
   );
 }
