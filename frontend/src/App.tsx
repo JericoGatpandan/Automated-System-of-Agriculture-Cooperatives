@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./components/layout/AppShell";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
+import { applyTheme, getStoredTheme } from "./lib/theme";
 
 import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
@@ -33,8 +35,13 @@ import { FarmerBalanceSheet } from "./pages/ledger/FarmerBalanceSheet";
 import { LandingPage } from "./pages/landing/LandingPage";
 import { DocumentationPage } from "./pages/landing/DocumentationPage";
 import { AboutPage } from "./pages/landing/AboutPage";
+import { SettingsPage } from "./pages/settings/SettingsPage";
 
 function App() {
+  useEffect(() => {
+    applyTheme(getStoredTheme());
+  }, []);
+
   return (
     <AuthProvider>
       <TooltipProvider>
@@ -61,6 +68,7 @@ function App() {
                       <Route path="register" element={<Register />} />
                       <Route path="requests" element={<AdminRequests />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
                       <Route path="farmers" element={<AdminFarmerRegistry />} />
                       <Route path="farmers/:id" element={<FarmerDetail />} />
                       <Route
@@ -113,6 +121,7 @@ function App() {
                       <Route index element={<CoopDashboard />} />
                       <Route path="register" element={<Register />} />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
                       <Route path="farmers" element={<CoopFarmerRegistry />} />
                       <Route path="farmers/new" element={<FarmerForm />} />
                       <Route path="farmers/:id" element={<FarmerDetail />} />
@@ -161,6 +170,7 @@ function App() {
                         element={<FarmerLedgerDetail variant="farmer" self />}
                       />
                       <Route path="profile" element={<ProfilePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
                     </Routes>
                   </AppShell>
                 </ProtectedRoute>
@@ -168,10 +178,7 @@ function App() {
             />
 
             {/* Legacy /register redirect */}
-            <Route
-              path="/register"
-              element={<Register />}
-            />
+            <Route path="/register" element={<Register />} />
 
             {/* Fallback → public landing */}
             <Route path="*" element={<Navigate to="/" replace />} />

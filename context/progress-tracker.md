@@ -126,6 +126,9 @@ Update this file after every meaningful implementation change.
   - Backend: Added Admin-only `POST`, `PUT`, and `DELETE` endpoints for `/api/products/crop-types`. Included duplicate name validation and dependency checks (blocked if referenced by Product/BuyerOrder).
   - Frontend: Developed `CropTypeManagementDialog` component as a clean modal dialog for FACCS Admins, displaying a master reference table with an add/edit form.
   - Integrated into `ProductInventoryPage` via the "Manage Crop Types" button for admins.
+- **Added App Shell Preferences**:
+  - Collapsible sidebar with header toggle and icon-only minimized state.
+  - Settings page with Appearance theme toggle (Light/Dark) and profile dropdown entry.
 
 ## In Progress
 

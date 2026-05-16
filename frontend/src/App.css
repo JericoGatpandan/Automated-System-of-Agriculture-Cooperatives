@@ -170,6 +170,28 @@
   }
 }
 
+.app-shell {
+  --sidebar-width: 16rem;
+}
+
+.app-shell[data-collapsed="true"] {
+  --sidebar-width: 4.5rem;
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    --sidebar-width: 0rem;
+  }
+}
+
+.app-shell .ml-64 {
+  margin-left: var(--sidebar-width);
+}
+
+.app-shell .app-header {
+  padding-left: calc(var(--sidebar-width) + 1.5rem);
+}
+
 /* Public landing: infinite horizontal partner strip (two identical halves → translate -50%) */
 @keyframes landing-marquee {
   0% {

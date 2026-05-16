@@ -1,12 +1,9 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { Sidebar } from "./Sidebar";
 import { AppHeader } from "./AppHeader";
 import { Button } from "../ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-} from "../ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "../ui/sheet";
 import { Menu } from "lucide-react";
 
 interface AppShellProps {
@@ -15,12 +12,21 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div
+      className="app-shell flex min-h-screen bg-background"
+      data-collapsed={isSidebarCollapsed ? "true" : "false"}
+      style={
+        {
+          "--sidebar-width": isSidebarCollapsed ? "4.5rem" : "16rem",
+        } as CSSProperties
+      }
+    >
       {/* ── Desktop Sidebar (hidden on mobile) ── */}
       <div className="hidden md:block shrink-0">
-        <Sidebar />
+        <Sidebar collapsed={isSidebarCollapsed} />
       </div>
 
       {/* ── Mobile Hamburger + Sheet ── */}
@@ -40,17 +46,18 @@ export function AppShell({ children }: AppShellProps) {
         <SheetContent side="left" className="p-0 w-64" showCloseButton={false}>
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <div onClick={() => setMobileOpen(false)}>
-            <Sidebar />
+            <Sidebar collapsed={false} />
           </div>
         </SheetContent>
       </Sheet>
 
       {/* ── Main Content Area ── */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <AppHeader />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        <AppHeader
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        />
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
