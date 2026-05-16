@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { 
-  Users, 
-  ClipboardList, 
-  Banknote, 
-  TrendingUp, 
-  UserPlus, 
+import {
+  Users,
+  ClipboardList,
+  Banknote,
+  TrendingUp,
+  UserPlus,
   FileText,
   Loader2,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -39,7 +45,7 @@ interface RecentAssignment {
   assignedDate: string;
   quantityRequired: number;
   status: string;
-  BuyerOrder?: { 
+  BuyerOrder?: {
     buyerCompany: string;
     urgencyLevel: string;
     CropType?: { cropName: string };
@@ -50,7 +56,9 @@ export function CoopDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState<CoopStats | null>(null);
-  const [recentAssignments, setRecentAssignments] = useState<RecentAssignment[]>([]);
+  const [recentAssignments, setRecentAssignments] = useState<
+    RecentAssignment[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,12 +68,15 @@ export function CoopDashboard() {
       try {
         const token = localStorage.getItem("asac_token");
         // Temp mock: assuming user.primaryCoopID is 1 for now if not present, in a real app this comes from profile
-        const coopId = user?.primaryCoopID || 1; 
-        
-        const res = await axios.get(`http://localhost:8800/api/dashboard/coop/${coopId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
+        const coopId = user?.primaryCoopID || 1;
+
+        const res = await axios.get(
+          `http://localhost:8800/api/dashboard/coop/${coopId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
         setStats(res.data.stats);
         setRecentAssignments(res.data.recentActivity);
       } catch (err) {
@@ -99,66 +110,98 @@ export function CoopDashboard() {
   return (
     <div className="ml-64 min-h-screen bg-bg-canvas">
       <div className="w-full mx-auto px-6 py-8 space-y-8">
-        
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-text-strong">{stats?.coopName || "Cooperative"} Dashboard</h1>
-          <p className="text-text-muted">Welcome back, {user?.email}. Here is your cooperative overview.</p>
+          <h1 className="text-2xl font-bold text-text-strong">
+            {stats?.coopName || "Cooperative"} Dashboard
+          </h1>
+          <p className="text-text-muted">
+            Welcome back, {user?.email}. Here is your cooperative overview.
+          </p>
         </div>
 
         {/* Top Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-text-muted">Active Farmers</CardTitle>
+              <CardTitle className="text-sm font-medium text-text-muted">
+                Active Farmers
+              </CardTitle>
               <Users className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.activeFarmers || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats?.activeFarmers || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-text-muted">Pending Assignments</CardTitle>
+              <CardTitle className="text-sm font-medium text-text-muted">
+                Pending Assignments
+              </CardTitle>
               <ClipboardList className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.pendingAssignments || 0}</div>
+              <div className="text-2xl font-bold">
+                {stats?.pendingAssignments || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-text-muted">Active Loans Out</CardTitle>
+              <CardTitle className="text-sm font-medium text-text-muted">
+                Active Loans Out
+              </CardTitle>
               <Banknote className="h-4 w-4 text-danger" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats?.totalLoansOut || 0)}</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(stats?.totalLoansOut || 0)}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-text-muted">Total Coop Sales</CardTitle>
+              <CardTitle className="text-sm font-medium text-text-muted">
+                Total Coop Sales
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats?.totalCoopSales || 0)}</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(stats?.totalCoopSales || 0)}
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions Panel */}
         <div>
-          <h2 className="text-lg font-semibold text-text-strong mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-text-strong mb-4">
+            Quick Actions
+          </h2>
           <div className="flex flex-wrap gap-4">
-            <Button onClick={() => navigate("/coop/farmers/new")} className="gap-2">
+            <Button
+              onClick={() => navigate("/coop/farmers/new")}
+              className="gap-2"
+            >
               <UserPlus className="h-4 w-4" />
               Register Farmer
             </Button>
-            <Button variant="outline" onClick={() => navigate("/coop/assignments")} className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/coop/assignments")}
+              className="gap-2"
+            >
               <CheckCircle className="h-4 w-4" />
               View Assignments
             </Button>
-            <Button variant="outline" onClick={() => navigate("/coop/ledger")} className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/coop/farmledger")}
+              className="gap-2"
+            >
               <FileText className="h-4 w-4" />
               Process Loan
             </Button>
@@ -169,11 +212,15 @@ export function CoopDashboard() {
         <Card className="border-border">
           <CardHeader>
             <CardTitle>Recent Order Assignments</CardTitle>
-            <CardDescription>The 5 most recent orders assigned to your cooperative.</CardDescription>
+            <CardDescription>
+              The 5 most recent orders assigned to your cooperative.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {recentAssignments.length === 0 ? (
-              <p className="text-sm text-text-muted">No recent assignments found.</p>
+              <p className="text-sm text-text-muted">
+                No recent assignments found.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -188,18 +235,42 @@ export function CoopDashboard() {
                 </TableHeader>
                 <TableBody>
                   {recentAssignments.map((assignment) => (
-                    <TableRow key={assignment.assignmentID} className="cursor-pointer" onClick={() => navigate(`/coop/assignments/${assignment.assignmentID}`)}>
-                      <TableCell>{new Date(assignment.assignedDate).toLocaleDateString()}</TableCell>
-                      <TableCell className="font-medium">{assignment.BuyerOrder?.buyerCompany}</TableCell>
-                      <TableCell>{assignment.BuyerOrder?.CropType?.cropName}</TableCell>
+                    <TableRow
+                      key={assignment.assignmentID}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        navigate(`/coop/assignments/${assignment.assignmentID}`)
+                      }
+                    >
+                      <TableCell>
+                        {new Date(assignment.assignedDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {assignment.BuyerOrder?.buyerCompany}
+                      </TableCell>
+                      <TableCell>
+                        {assignment.BuyerOrder?.CropType?.cropName}
+                      </TableCell>
                       <TableCell>{assignment.quantityRequired} kg</TableCell>
                       <TableCell>
-                        <Badge variant={assignment.BuyerOrder?.urgencyLevel === "High" ? "destructive" : "secondary"}>
+                        <Badge
+                          variant={
+                            assignment.BuyerOrder?.urgencyLevel === "High"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
                           {assignment.BuyerOrder?.urgencyLevel}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={assignment.status === "pending" ? "outline" : "default"}>
+                        <Badge
+                          variant={
+                            assignment.status === "pending"
+                              ? "outline"
+                              : "default"
+                          }
+                        >
                           {assignment.status}
                         </Badge>
                       </TableCell>
@@ -209,13 +280,15 @@ export function CoopDashboard() {
               </Table>
             )}
             <div className="mt-4 text-right">
-              <Button variant="link" onClick={() => navigate("/coop/assignments")}>
+              <Button
+                variant="link"
+                onClick={() => navigate("/coop/assignments")}
+              >
                 View all assignments →
               </Button>
             </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

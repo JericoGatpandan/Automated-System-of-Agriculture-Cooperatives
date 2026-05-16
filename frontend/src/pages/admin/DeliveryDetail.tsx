@@ -1,10 +1,11 @@
+import { format, parseISO } from "date-fns";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 
 import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
+import { DatePicker } from "../../components/ui/date-picker";
 import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -484,12 +485,11 @@ export function DeliveryDetail() {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="deliveryDateInput">Delivery Date *</Label>
-              <Input
+              <DatePicker
                 id="deliveryDateInput"
-                type="date"
-                value={deliveryDate}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setDeliveryDate(e.target.value)
+                date={deliveryDate ? parseISO(deliveryDate) : undefined}
+                onDateChange={(value) =>
+                  setDeliveryDate(value ? format(value, "yyyy-MM-dd") : "")
                 }
               />
             </div>

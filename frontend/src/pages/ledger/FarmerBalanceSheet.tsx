@@ -2,11 +2,13 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Badge } from "@/components/ui/badge";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { type DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Calendar, FileText, Printer, Loader2 } from "lucide-react";
+import { FileText, Printer, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
@@ -57,6 +59,7 @@ export function FarmerBalanceSheet() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [data, setData] = useState<any>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   useEffect(() => {
     async function fetchLedger() {
@@ -191,16 +194,11 @@ export function FarmerBalanceSheet() {
             {/* Select Period */}
             <div className="flex-1 flex flex-col gap-1.5">
               <Label htmlFor="period-input" className="text-xs text-gray-500">Period (Optional)</Label>
-              <div className="relative">
-                <Input
-                  id="period-input"
-                  type="text"
-                  disabled
-                  placeholder="All Time"
-                  className="h-9 pr-9"
-                />
-                <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-neutral-400 pointer-events-none" />
-              </div>
+              <DateRangePicker 
+                date={dateRange} 
+                onDateChange={setDateRange} 
+                className="w-[260px]"
+              />
             </div>
           </div>
 
