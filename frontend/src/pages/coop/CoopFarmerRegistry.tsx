@@ -58,7 +58,8 @@ interface FarmerRow {
   lastName: string;
   suffixName: string | null;
   farmName: string | null;
-  farmLocation: string;
+  municipality: string;
+  barangay: string;
   isDeleted: boolean;
   User?: { email: string };
   FarmerCooperatives?: {
@@ -134,7 +135,8 @@ export function CoopFarmerRegistry() {
       f.firstName.toLowerCase().includes(q) ||
       f.lastName.toLowerCase().includes(q) ||
       (f.farmName || "").toLowerCase().includes(q) ||
-      f.farmLocation.toLowerCase().includes(q)
+      f.municipality.toLowerCase().includes(q) ||
+      f.barangay.toLowerCase().includes(q)
     );
   });
 
@@ -211,7 +213,7 @@ export function CoopFarmerRegistry() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="search-farmers"
-              placeholder="Search by name, farm, or location…"
+              placeholder="Search by name, farm, municipality, or barangay…"
               className="pl-9 h-10 text-sm"
               value={search}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -321,7 +323,10 @@ export function CoopFarmerRegistry() {
                         Farm
                       </TableHead>
                       <TableHead className="font-semibold text-muted-foreground">
-                        Location
+                        Municipality
+                      </TableHead>
+                      <TableHead className="font-semibold text-muted-foreground">
+                        Barangay
                       </TableHead>
                       <TableHead className="font-semibold text-muted-foreground">
                         Crops
@@ -365,7 +370,10 @@ export function CoopFarmerRegistry() {
                             {f.farmName || "—"}
                           </TableCell>
                           <TableCell className="py-4">
-                            {f.farmLocation}
+                            {f.municipality}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {f.barangay}
                           </TableCell>
                           <TableCell className="py-4">{crops}</TableCell>
                           <TableCell className="py-4">

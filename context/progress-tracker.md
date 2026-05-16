@@ -5,6 +5,7 @@ Update this file after every meaningful implementation change.
 ## Current Phase
 
 - **Module Implementation**: Building core modules against the ASAC spec.
+- **Database Optimization**: Offloading business logic and aggregation to MySQL (Views, Triggers, Procedures).
 
 ## Current Goal
 
@@ -117,6 +118,29 @@ Update this file after every meaningful implementation change.
   - Added optional `imagePath` support for products so crop images can use `frontend/public/crops` assets or uploaded data URLs with a fallback placeholder.
   - Added the shared inventory page at `/admin/products` and `/coop/products` with search, filters, sorting, detail dialog, and cooperative edit/create/delete actions.
   - Added sidebar navigation entries for Products in both admin and cooperative menus.
+- **Implemented PSGC Location Lookup (Frontend)**:
+  - Added a reusable PSGC location selector with cached city/municipality and barangay lookups using PSGC codes.
+  - Integrated the selector into farmer registration and cooperative registry forms with loading and error states.
+
+- **Implemented Crop Type Management**:
+  - Backend: Added Admin-only `POST`, `PUT`, and `DELETE` endpoints for `/api/products/crop-types`. Included duplicate name validation and dependency checks (blocked if referenced by Product/BuyerOrder).
+  - Frontend: Developed `CropTypeManagementDialog` component as a clean modal dialog for FACCS Admins, displaying a master reference table with an add/edit form.
+  - Integrated into `ProductInventoryPage` via the "Manage Crop Types" button for admins.
+- **Added App Shell Preferences**:
+  - Collapsible sidebar with header toggle and icon-only minimized state.
+  - Settings page with Appearance theme toggle (Light/Dark) and profile dropdown entry.
+- **Database Optimization Phase 2**:
+  - Added stored procedures for delivery completion, statement generation, loan status refresh, and ledger summaries.
+  - Added indexes for ledger and delivery join paths.
+  - Updated delivery and ledger endpoints to call new procedures.
+  - Updated monthly purge event to target AuditLogs only.
+
+- **Database Seeding Expansion & Alignment**:
+  - Updated all 16 existing seeders to align with May 16, 2026 reference date.
+  - Ensured mathematical consistency across the Order -> Assignment -> Fulfillment -> Delivery -> Sales -> Fee chain.
+  - Expanded Farmer memberships and accounts to support more complex scenarios (multi-coop membership).
+  - Added new seeders for `PartnershipRequests` and `Notifications`.
+  - Total seed records now cover all 19 primary cooperatives and diverse transaction statuses.
 
 ## In Progress
 

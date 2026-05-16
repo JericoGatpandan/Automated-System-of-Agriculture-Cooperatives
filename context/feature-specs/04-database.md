@@ -51,7 +51,8 @@ Read `AGENTS.md` before starting.
   - `lastName` (String)
   - `suffixName` (String)
   - `farmName` (String)
-  - `farmLocation` (String)
+  - `municipality` (String)
+  - `barangay` (String)
   - `isDeleted` (Boolean)
   - `createdAt` (Timestamp)
 - **Relationships:**

@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import { DateRangePicker } from "../../components/ui/date-range-picker";
+import { type DateRange } from "react-day-picker";
 import {
   Table,
   TableBody,
@@ -80,8 +82,7 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [period, setPeriod] = useState<string>("all");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [coopName, setCoopName] = useState("");
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,8 +101,11 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
       const params: Record<string, string> = {
         period,
         ...(statusFilter !== "all" ? { status: statusFilter } : {}),
-        ...(period === "custom" && customStart && customEnd
-          ? { startDate: customStart, endDate: customEnd }
+        ...(period === "custom" && dateRange?.from
+          ? { 
+              startDate: dateRange.from.toISOString().split("T")[0], 
+              endDate: dateRange.to ? dateRange.to.toISOString().split("T")[0] : dateRange.from.toISOString().split("T")[0] 
+            }
           : {}),
       };
       const res = await axios.get(listUrl, { params });
@@ -114,21 +118,10 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
         navigate("/login");
         return;
       }
-      setError("Failed to load cooperative ledger");
     } finally {
       setLoading(false);
     }
-  }, [
-    coopId,
-    customEnd,
-    customStart,
-    listUrl,
-    logout,
-    navigate,
-    mode,
-    period,
-    statusFilter,
-  ]);
+  }, [coopId, listUrl, logout, navigate, mode, period, statusFilter, dateRange]);
 
   useEffect(() => {
     load();
@@ -152,7 +145,7 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter, period, customStart, customEnd]);
+  }, [search, statusFilter, period, dateRange]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -222,22 +215,11 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
               </SelectContent>
             </Select>
             {period === "custom" && (
-              <>
-                <Input
-                  type="date"
-                  className="w-[160px]"
-                  value={customStart}
-                  onChange={(e) => setCustomStart(e.target.value)}
-                  aria-label="Custom period start"
-                />
-                <Input
-                  type="date"
-                  className="w-[160px]"
-                  value={customEnd}
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                  aria-label="Custom period end"
-                />
-              </>
+              <DateRangePicker 
+                date={dateRange} 
+                onDateChange={setDateRange} 
+                className="w-auto"
+              />
             )}
             <Button variant="secondary" size="sm" onClick={() => load()}>
               Refresh

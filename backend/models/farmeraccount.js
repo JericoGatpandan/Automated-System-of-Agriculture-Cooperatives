@@ -37,6 +37,12 @@ module.exports = (sequelize, DataTypes) => {
       primaryCoopID: DataTypes.INTEGER,
       createdDate: DataTypes.DATE,
       status: DataTypes.STRING,
+      totalShareCapital: {
+        type: DataTypes.DECIMAL(12, 2),
+        defaultValue: 0.00
+      },
+      createdAt: DataTypes.DATE,
+      updatedAt: DataTypes.DATE,
     },
     {
       sequelize,

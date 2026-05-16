@@ -1,15 +1,25 @@
 import axios from "axios";
+import { format, parseISO } from "date-fns";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "../../components/ui/button";
 import {
-  Card, CardContent, CardHeader, CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "../../components/ui/card";
+import { DatePicker } from "../../components/ui/date-picker";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "../../components/ui/select";
 import { Textarea } from "../../components/ui/textarea";
 
@@ -35,25 +45,40 @@ export function DeliveryForm() {
   const [error, setError] = useState("");
 
   const [orderID, setOrderID] = useState("");
-  const [consolidationDate, setConsolidationDate] = useState(new Date().toISOString().split("T")[0]);
+  const [consolidationDate, setConsolidationDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [deliveryDate, setDeliveryDate] = useState("");
   const [totalTransactionAmount, setTotalTransactionAmount] = useState("");
-  const [commissionRateFederation, setCommissionRateFederation] = useState("0.03");
+  const [commissionRateFederation, setCommissionRateFederation] =
+    useState("0.03");
   const [commissionRateCoop, setCommissionRateCoop] = useState("0.05");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    axios.get(ORDER_API).then((r) => {
-      const allOrders = r.data.orders || [];
-      const eligible = allOrders.filter((o: OrderOption) => ["consolidated", "inProgress"].includes(o.status));
-      if (isEdit && orderID) {
-        const currentOrder = allOrders.find((o: OrderOption) => String(o.orderID) === orderID);
-        if (currentOrder && !eligible.some((o: OrderOption) => o.orderID === currentOrder.orderID)) {
-          eligible.push(currentOrder);
+    axios
+      .get(ORDER_API)
+      .then((r) => {
+        const allOrders = r.data.orders || [];
+        const eligible = allOrders.filter((o: OrderOption) =>
+          ["consolidated", "inProgress"].includes(o.status),
+        );
+        if (isEdit && orderID) {
+          const currentOrder = allOrders.find(
+            (o: OrderOption) => String(o.orderID) === orderID,
+          );
+          if (
+            currentOrder &&
+            !eligible.some(
+              (o: OrderOption) => o.orderID === currentOrder.orderID,
+            )
+          ) {
+            eligible.push(currentOrder);
+          }
         }
-      }
-      setOrders(eligible);
-    }).catch(() => {});
+        setOrders(eligible);
+      })
+      .catch(() => {});
   }, [isEdit, orderID]);
 
   useEffect(() => {
@@ -78,7 +103,12 @@ export function DeliveryForm() {
     })();
   }, [id, isEdit]);
 
-  const canSubmit = orderID && consolidationDate && totalTransactionAmount && commissionRateFederation && commissionRateCoop;
+  const canSubmit =
+    orderID &&
+    consolidationDate &&
+    totalTransactionAmount &&
+    commissionRateFederation &&
+    commissionRateCoop;
 
   const handleSubmit = async () => {
     setError("");
@@ -117,11 +147,17 @@ export function DeliveryForm() {
     <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/admin/deliveries")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/admin/deliveries")}
+          >
             <ChevronLeft />
           </Button>
           <Truck className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">{isEdit ? "Edit Delivery" : "New Delivery"}</h1>
+          <h1 className="text-xl font-bold text-foreground">
+            {isEdit ? "Edit Delivery" : "New Delivery"}
+          </h1>
         </div>
 
         <Card>
@@ -131,8 +167,14 @@ export function DeliveryForm() {
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label>Order *</Label>
-              <Select value={orderID} onValueChange={setOrderID} disabled={isEdit}>
-                <SelectTrigger id="orderSelect"><SelectValue placeholder="Select order" /></SelectTrigger>
+              <Select
+                value={orderID}
+                onValueChange={setOrderID}
+                disabled={isEdit}
+              >
+                <SelectTrigger id="orderSelect">
+                  <SelectValue placeholder="Select order" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     {orders.map((o) => (
@@ -146,46 +188,89 @@ export function DeliveryForm() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="consolidationDate">Consolidation Date *</Label>
-              <Input id="consolidationDate" type="date" value={consolidationDate}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConsolidationDate(e.target.value)} />
+              <DatePicker
+                id="consolidationDate"
+                date={
+                  consolidationDate ? parseISO(consolidationDate) : undefined
+                }
+                onDateChange={(value) =>
+                  setConsolidationDate(value ? format(value, "yyyy-MM-dd") : "")
+                }
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="deliveryDate">Delivery Date</Label>
-              <Input
+              <DatePicker
                 id="deliveryDate"
-                type="date"
-                value={deliveryDate}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeliveryDate(e.target.value)}
-                placeholder="Set when marking delivered"
+                date={deliveryDate ? parseISO(deliveryDate) : undefined}
+                onDateChange={(value) =>
+                  setDeliveryDate(value ? format(value, "yyyy-MM-dd") : "")
+                }
                 disabled
               />
-              <p className="text-xs text-muted-foreground">Set when marking the delivery as delivered</p>
+              <p className="text-xs text-muted-foreground">
+                Set when marking the delivery as delivered
+              </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="totalAmount">Total Transaction Amount (PHP) *</Label>
-              <Input id="totalAmount" type="number" min="1" step="0.01" value={totalTransactionAmount}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTotalTransactionAmount(e.target.value)}
-                placeholder="e.g. 45000.00" />
+              <Label htmlFor="totalAmount">
+                Total Transaction Amount (PHP) *
+              </Label>
+              <Input
+                id="totalAmount"
+                type="number"
+                min="1"
+                step="0.01"
+                value={totalTransactionAmount}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setTotalTransactionAmount(e.target.value)
+                }
+                placeholder="e.g. 45000.00"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="fedRate">Federation Rate *</Label>
-                <Input id="fedRate" type="number" min="0" max="1" step="0.01" value={commissionRateFederation}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCommissionRateFederation(e.target.value)} />
+                <Input
+                  id="fedRate"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={commissionRateFederation}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCommissionRateFederation(e.target.value)
+                  }
+                />
                 <p className="text-xs text-muted-foreground">e.g. 0.03 = 3%</p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="coopRate">Cooperative Rate *</Label>
-                <Input id="coopRate" type="number" min="0" max="1" step="0.01" value={commissionRateCoop}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCommissionRateCoop(e.target.value)} />
+                <Input
+                  id="coopRate"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={commissionRateCoop}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCommissionRateCoop(e.target.value)
+                  }
+                />
                 <p className="text-xs text-muted-foreground">e.g. 0.05 = 5%</p>
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea id="notes" value={notes}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
-                placeholder="Additional details…" rows={3} />
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setNotes(e.target.value)
+                }
+                placeholder="Additional details…"
+                rows={3}
+              />
             </div>
           </CardContent>
         </Card>
@@ -193,10 +278,28 @@ export function DeliveryForm() {
         {error && <p className="text-sm text-destructive mt-4">{error}</p>}
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="outline" onClick={() => navigate("/admin/deliveries")} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading || !canSubmit} id="submit-delivery-btn">
-            {loading ? <><Loader2 data-icon="inline-start" className="animate-spin" />{isEdit ? "Saving…" : "Creating…"}</>
-              : isEdit ? "Save Changes" : "Create Delivery"}
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/deliveries")}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !canSubmit}
+            id="submit-delivery-btn"
+          >
+            {loading ? (
+              <>
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+                {isEdit ? "Saving…" : "Creating…"}
+              </>
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Create Delivery"
+            )}
           </Button>
         </div>
       </div>

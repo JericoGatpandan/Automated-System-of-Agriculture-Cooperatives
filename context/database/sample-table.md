@@ -40,13 +40,13 @@
 
 | Farmer |  |  |  |  |  |  |  |  |  |
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
-| **farmerID** | **userID** | **firstName** | **middleName** | **lastName** | **suffixName** | **farmName** | **farmLocation** | **isDeleted** | createdAt |
-| **PK, SA, NN, ND, NC** | FK, ND | NN |  | NN |  |  | NN | NN | NN |
-| **1** | 3 | Juan | Reyes | Dela Cruz |  | Dela Cruz Farm | Bula, CamSur | FALSE | 2024-02-01 |
-| **2** | 5 | Pedro | Lim | Santos | Jr. | Santos Organic Farm | Pili, CamSur | FALSE | 2024-03-05 |
-| **3** | 7 | Maria | Cruz | Villanueva |  | Villanueva Rice Farm | Magarao, CamSur | FALSE | 2024-03-10 |
-| **4** | 9 | Roberto |  | Navarro |  | Navarro Farm | Gainza, CamSur | FALSE | 2024-03-15 |
-| **5** | 11 | Ligaya | Morales | Garcia |  | Garcia Coco Farm | Bula, CamSur | FALSE | 2024-04-01 |
+| **farmerID** | **userID** | **firstName** | **middleName** | **lastName** | **suffixName** | **farmName** | **municipality** | **barangay** | **isDeleted** | createdAt |
+| **PK, SA, NN, ND, NC** | FK, ND | NN |  | NN |  |  | NN | NN | NN | NN |
+| **1** | 3 | Juan | Reyes | Dela Cruz |  | Dela Cruz Farm | Bula | Sagrada | FALSE | 2024-02-01 |
+| **2** | 5 | Pedro | Lim | Santos | Jr. | Santos Organic Farm | Pili | San Agustin | FALSE | 2024-03-05 |
+| **3** | 7 | Maria | Cruz | Villanueva |  | Villanueva Rice Farm | Magarao | San Miguel | FALSE | 2024-03-10 |
+| **4** | 9 | Roberto |  | Navarro |  | Navarro Farm | Gainza | Sampaloc | FALSE | 2024-03-15 |
+| **5** | 11 | Ligaya | Morales | Garcia |  | Garcia Coco Farm | Bula | Cabangal | FALSE | 2024-04-01 |
 
 | CropType |  |  |
 | :---- | :---- | :---- |
@@ -151,7 +151,7 @@ isDeleted \= Number \* Boolean
                      Legal Character \= \[0 | 1\]
 
 **Farmer-Table** \= @farmerID \+ userID \+ firstName \+ (middleName) \+ lastName \+  
-               (suffixName) \+ farmName \+ farmLocation \+ createdAt \+ isDeleted  
+               (suffixName) \+ farmName \+ municipality \+ barangay \+ createdAt \+ isDeleted  
 farmerID \= Number \* Long Integer  
 userID \=  \* FK from User-Table in column userID  
 firstName   \= 1{Legal-Character}50  
@@ -163,8 +163,10 @@ suffixName  \= 1{Legal-Character}10 (optional)
                Suffix \= \["Jr." | "Sr." | "II" | "III"\]  
 farmName \= 1{Legal-Character}100  
                Legal Character \= \[a-z | A-Z | 0-9 | . | \- | \]  
-farmLocation \= 1{Legal-Character}150  
-               Legal Character \= \[a-z | A-Z | 0-9 | , | . | \- | \]  
+municipality \= 1{Legal-Character}100  
+                     Legal Character \= \[a-z | A-Z | 0-9 | . | \- | \]  
+barangay \= 1{Legal-Character}100  
+                     Legal Character \= \[a-z | A-Z | 0-9 | . | \- | \]  
 createdAt   \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
 isDeleted   \= Number \* Boolean  
                Legal Character \= \[0 | 1\]

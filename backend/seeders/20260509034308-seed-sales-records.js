@@ -3,84 +3,100 @@
 /**
  * Seed SalesRecords.
  *
- * Per the Cardinalities doc:
- * - SalesRecord is generated when a DeliveryRecord status changes to "delivered"
- * - One DeliveryRecord may generate many SalesRecords (one per fulfilling farmer)
+ * Mathematically consistent with DeliveryRecords and FarmerFulfillments.
+ * Commission = 8% (3% Federation + 5% Coop).
  *
- * We create sales records for the 3 delivered deliveries (IDs 1, 2, 4, 5).
- * Delivery 3 is still "pending" so no sales record is generated for it.
+ * Delivery 1 (Order 1, 2000 units, 45,000 PHP):
+ * - Farmer 1 (400 units, Account 1): 9,000 Gross.
+ * - Farmer 5 (400 units, Account 18): 9,000 Gross.
+ * - Farmer 6 (700 units, Account 17): 15,750 Gross.
+ * - Farmer 2 (500 units, Account 2): 11,250 Gross.
  *
- * Delivery 1 (orderID=1, ₱45,000): fulfilled by farmer 1 (account 1) and farmer 5 (account 5)
- * Delivery 2 (orderID=2, ₱25,000): fulfilled by farmer 3 (account 3)
- * Delivery 4 (orderID=4, ₱10,000): no fulfillment record linked but we model farmer 4 (account 4)
- * Delivery 5 (orderID=1, ₱15,000): partial delivery — farmer 2 (account 2)
+ * Delivery 2 (Order 2, 1000 units, 25,000 PHP):
+ * - Farmer 2 (1000 units, Account 2): 25,000 Gross.
  *
- * Commission = commissionRateFederation (3%) + commissionRateCoop (5%) = 8%
+ * Delivery 4 (Order 4, 500 units, 12,500 PHP):
+ * - Farmer 4 (500 units, Account 4): 12,500 Gross.
  *
  * @type {import('sequelize-cli').Migration}
  */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('SalesRecords', [
+      // Delivery 1
       {
         salesRecordID: 1,
         farmerAccountID: 1,
         deliveryID: 1,
-        grossAmount: 22500.00,
-        commissionAmount: 1800.00,
-        netAmount: 20700.00,
-        transactionDate: new Date('2024-09-22'),
-        remarks: 'Farmer 1 share of Delivery 1 (Order 1 - NFA)',
-        createdAt: new Date('2024-09-22'),
-        updatedAt: new Date('2024-09-22'),
+        grossAmount: 9000.00,
+        commissionAmount: 720.00,
+        netAmount: 8280.00,
+        transactionDate: new Date('2026-05-12'),
+        remarks: 'Farmer 1 share of Delivery 1',
+        createdAt: new Date('2026-05-12'),
+        updatedAt: new Date('2026-05-12'),
       },
       {
         salesRecordID: 2,
-        farmerAccountID: 5,
+        farmerAccountID: 18,
         deliveryID: 1,
-        grossAmount: 22500.00,
-        commissionAmount: 1800.00,
-        netAmount: 20700.00,
-        transactionDate: new Date('2024-09-22'),
-        remarks: 'Farmer 5 share of Delivery 1 (Order 1 - NFA)',
-        createdAt: new Date('2024-09-22'),
-        updatedAt: new Date('2024-09-22'),
+        grossAmount: 9000.00,
+        commissionAmount: 720.00,
+        netAmount: 8280.00,
+        transactionDate: new Date('2026-05-12'),
+        remarks: 'Farmer 5 share of Delivery 1',
+        createdAt: new Date('2026-05-12'),
+        updatedAt: new Date('2026-05-12'),
       },
       {
         salesRecordID: 3,
-        farmerAccountID: 3,
+        farmerAccountID: 17,
+        deliveryID: 1,
+        grossAmount: 15750.00,
+        commissionAmount: 1260.00,
+        netAmount: 14490.00,
+        transactionDate: new Date('2026-05-12'),
+        remarks: 'Farmer 6 share of Delivery 1',
+        createdAt: new Date('2026-05-12'),
+        updatedAt: new Date('2026-05-12'),
+      },
+      {
+        salesRecordID: 4,
+        farmerAccountID: 2,
+        deliveryID: 1,
+        grossAmount: 11250.00,
+        commissionAmount: 900.00,
+        netAmount: 10350.00,
+        transactionDate: new Date('2026-05-12'),
+        remarks: 'Farmer 2 share of Delivery 1',
+        createdAt: new Date('2026-05-12'),
+        updatedAt: new Date('2026-05-12'),
+      },
+      // Delivery 2
+      {
+        salesRecordID: 5,
+        farmerAccountID: 2,
         deliveryID: 2,
         grossAmount: 25000.00,
         commissionAmount: 2000.00,
         netAmount: 23000.00,
-        transactionDate: new Date('2024-09-27'),
-        remarks: 'Farmer 3 delivery for PhilRice (Order 2)',
-        createdAt: new Date('2024-09-27'),
-        updatedAt: new Date('2024-09-27'),
+        transactionDate: new Date('2026-05-14'),
+        remarks: 'Farmer 2 delivery for Order 2',
+        createdAt: new Date('2026-05-14'),
+        updatedAt: new Date('2026-05-14'),
       },
+      // Delivery 4
       {
-        salesRecordID: 4,
+        salesRecordID: 6,
         farmerAccountID: 4,
         deliveryID: 4,
-        grossAmount: 10000.00,
-        commissionAmount: 800.00,
-        netAmount: 9200.00,
-        transactionDate: new Date('2024-09-19'),
-        remarks: 'Farmer 4 corn delivery for Provincial Gov (Order 4)',
-        createdAt: new Date('2024-09-19'),
-        updatedAt: new Date('2024-09-19'),
-      },
-      {
-        salesRecordID: 5,
-        farmerAccountID: 2,
-        deliveryID: 5,
-        grossAmount: 15000.00,
-        commissionAmount: 1200.00,
-        netAmount: 13800.00,
-        transactionDate: new Date('2024-09-23'),
-        remarks: 'Farmer 2 partial delivery for NFA (Order 1)',
-        createdAt: new Date('2024-09-23'),
-        updatedAt: new Date('2024-09-23'),
+        grossAmount: 12500.00,
+        commissionAmount: 1000.00,
+        netAmount: 11500.00,
+        transactionDate: new Date('2026-05-09'),
+        remarks: 'Farmer 4 delivery for Order 4',
+        createdAt: new Date('2026-05-09'),
+        updatedAt: new Date('2026-05-09'),
       },
     ]);
   },

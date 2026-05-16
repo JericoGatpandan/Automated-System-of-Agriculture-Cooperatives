@@ -18,6 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
+import { CropTypeManagementDialog } from "./CropTypeManagementDialog";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import {
@@ -275,6 +276,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
   const [selectedImagePreview, setSelectedImagePreview] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [manageCropsOpen, setManageCropsOpen] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -747,12 +749,23 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
           <Badge variant="outline">
             {mode === "admin" ? "All cooperatives" : "My cooperative"}
           </Badge>
-          {canManage && (
-            <Button onClick={openCreate} id="add-product-btn">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          )}
+          
+          <div className="ml-auto flex items-center gap-2">
+            {mode === "admin" && (
+              <Button
+                variant="outline"
+                onClick={() => setManageCropsOpen(true)}
+              >
+                Manage Crop Types
+              </Button>
+            )}
+            {canManage && (
+              <Button onClick={openCreate} id="add-product-btn">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -1302,6 +1315,13 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CropTypeManagementDialog
+        open={manageCropsOpen}
+        onOpenChange={setManageCropsOpen}
+        cropTypes={cropTypes}
+        onSuccess={fetchProducts}
+      />
     </div>
   );
 }

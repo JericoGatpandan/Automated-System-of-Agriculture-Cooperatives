@@ -58,7 +58,7 @@ export function Login() {
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-          "Failed to sign in. Please check your credentials.",
+        "Failed to sign in. Please check your credentials.",
       );
     } finally {
       setLoading(false);
@@ -68,20 +68,19 @@ export function Login() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Left Column: Logo & Branding */}
-      <div className="hidden lg:flex flex-col justify-center items-center w-1/2 bg-sidebar border-r border-border p-12">
+      <div className="w-[50vw] self-stretch px-16 py-40 bg-white inline-flex flex-col justify-center items-center gap-3 overflow-hidden">
         <div className="max-w-md space-y-4">
           <img
             src={asacLogo}
             alt="ASAC Logo"
-            className="w-40 h-40 object-contain mx-auto"
+            className="size-60 object-contain mx-auto"
           />
-          <h1 className="text-5xl font-bold tracking-tight text-sidebar-foreground">
+          <h1 className="text-5xl font-bold tracking-tight text-sidebar-foreground text-center">
             ASAC
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground text-center font-bold">
             Automated System of Agriculture Cooperatives
           </p>
-          <div className="h-1 w-12 bg-primary mt-4 rounded"></div>
         </div>
       </div>
 
@@ -128,6 +127,12 @@ export function Login() {
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
+            <div className="inline-flex justify-center items-center gap-2 mt-4 w-full">
+              <div className="text-sm text-muted-foreground">Not yet part of the federation?</div>
+              <Button variant="link" onClick={() => navigate("/register")} className="p-0 h-auto text-primary">
+                Join FACCS
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

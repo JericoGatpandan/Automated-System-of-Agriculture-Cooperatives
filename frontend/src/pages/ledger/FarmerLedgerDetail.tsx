@@ -1,4 +1,5 @@
 import axios from "axios";
+import { format, parseISO } from "date-fns";
 import { Banknote, ChevronLeft, FileText, Loader2, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -25,6 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import { DatePicker } from "../../components/ui/date-picker";
+import { DateRangePicker } from "../../components/ui/date-range-picker";
+import { type DateRange } from "react-day-picker";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { ScrollArea } from "../../components/ui/scroll-area";
@@ -274,8 +278,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
   const [repaySaving, setRepaySaving] = useState(false);
 
   const [stmtOpen, setStmtOpen] = useState(false);
-  const [stmtStart, setStmtStart] = useState("");
-  const [stmtEnd, setStmtEnd] = useState("");
+  const [stmtDateRange, setStmtDateRange] = useState<DateRange | undefined>();
   const [stmtSaving, setStmtSaving] = useState(false);
 
   const navigateStatementBase =
@@ -334,12 +337,13 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
 
   async function submitStatement() {
     const fid = self ? String(data?.farmer?.farmerID) : farmerId;
-    if (!fid || !activeLedger) return;
+    if (!fid || !activeLedger || !stmtDateRange?.from || !stmtDateRange?.to)
+      return;
     setStmtSaving(true);
     try {
       const res = await axios.post(`${LEDGER}/farmers/${fid}/statement`, {
-        periodStart: stmtStart,
-        periodEnd: stmtEnd,
+        periodStart: stmtDateRange.from.toISOString().split("T")[0],
+        periodEnd: stmtDateRange.to.toISOString().split("T")[0],
         farmerAccountID: activeLedger.farmerAccount.farmerAccountID,
       });
       navigate(navigateStatementBase, {
@@ -769,20 +773,22 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="lrel">Release date</Label>
-                <Input
+                <DatePicker
                   id="lrel"
-                  type="date"
-                  value={loanRelease}
-                  onChange={(e) => setLoanRelease(e.target.value)}
+                  date={loanRelease ? parseISO(loanRelease) : undefined}
+                  onDateChange={(value) =>
+                    setLoanRelease(value ? format(value, "yyyy-MM-dd") : "")
+                  }
                 />
               </div>
               <div>
                 <Label htmlFor="ldue">Due date</Label>
-                <Input
+                <DatePicker
                   id="ldue"
-                  type="date"
-                  value={loanDue}
-                  onChange={(e) => setLoanDue(e.target.value)}
+                  date={loanDue ? parseISO(loanDue) : undefined}
+                  onDateChange={(value) =>
+                    setLoanDue(value ? format(value, "yyyy-MM-dd") : "")
+                  }
                 />
               </div>
             </div>
@@ -820,11 +826,12 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
             </div>
             <div>
               <Label htmlFor="rdate">Repayment date</Label>
-              <Input
+              <DatePicker
                 id="rdate"
-                type="date"
-                value={repayDate}
-                onChange={(e) => setRepayDate(e.target.value)}
+                date={repayDate ? parseISO(repayDate) : undefined}
+                onDateChange={(value) =>
+                  setRepayDate(value ? format(value, "yyyy-MM-dd") : "")
+                }
               />
             </div>
           </div>
@@ -848,23 +855,13 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
           <DialogHeader>
             <DialogTitle>Statement period</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3 py-2">
-            <div>
-              <Label htmlFor="ps">Period start</Label>
-              <Input
-                id="ps"
-                type="date"
-                value={stmtStart}
-                onChange={(e) => setStmtStart(e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="pe">Period end</Label>
-              <Input
-                id="pe"
-                type="date"
-                value={stmtEnd}
-                onChange={(e) => setStmtEnd(e.target.value)}
+          <div className="grid gap-3 py-4">
+            <div className="flex flex-col gap-2">
+              <Label>Statement period</Label>
+              <DateRangePicker
+                date={stmtDateRange}
+                onDateChange={setStmtDateRange}
+                className="w-full"
               />
             </div>
           </div>
@@ -874,7 +871,9 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
             </Button>
             <Button
               onClick={submitStatement}
-              disabled={stmtSaving || !stmtStart || !stmtEnd}
+              disabled={
+                stmtSaving || !stmtDateRange?.from || !stmtDateRange?.to
+              }
             >
               {stmtSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

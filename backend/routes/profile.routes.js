@@ -75,7 +75,8 @@ router.get("/", authenticate, async (req, res) => {
           lastName: farmer.lastName,
           suffixName: farmer.suffixName,
           farmName: farmer.farmName,
-          farmLocation: farmer.farmLocation,
+          municipality: farmer.municipality,
+          barangay: farmer.barangay,
           cooperatives: memberships.map((m) => ({
             coopName: m.PrimaryCooperative?.coopName || "Unknown",
             status: m.status,
@@ -109,7 +110,9 @@ router.put("/email", authenticate, async (req, res) => {
     const { newEmail } = req.body;
 
     if (!newEmail || !newEmail.includes("@")) {
-      return res.status(400).json({ message: "Valid email address is required" });
+      return res
+        .status(400)
+        .json({ message: "Valid email address is required" });
     }
 
     // Check uniqueness
@@ -122,7 +125,7 @@ router.put("/email", authenticate, async (req, res) => {
 
     await db.User.update(
       { email: newEmail },
-      { where: { userID: req.user.userID } }
+      { where: { userID: req.user.userID } },
     );
 
     res.json({ message: "Email updated", email: newEmail });
@@ -141,7 +144,9 @@ router.put("/password", authenticate, async (req, res) => {
     const { currentPassword, newPassword, confirmPassword } = req.body;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ message: "All password fields are required" });
+      return res
+        .status(400)
+        .json({ message: "All password fields are required" });
     }
 
     if (newPassword.length < 8) {
@@ -169,7 +174,7 @@ router.put("/password", authenticate, async (req, res) => {
 
     await db.User.update(
       { password_hash: hash },
-      { where: { userID: req.user.userID } }
+      { where: { userID: req.user.userID } },
     );
 
     res.json({ message: "Password changed successfully" });
@@ -189,7 +194,9 @@ router.delete("/", authenticate, async (req, res) => {
     const { password } = req.body;
 
     if (!password) {
-      return res.status(400).json({ message: "Password confirmation is required" });
+      return res
+        .status(400)
+        .json({ message: "Password confirmation is required" });
     }
 
     const user = await db.User.findByPk(req.user.userID, {
@@ -227,14 +234,14 @@ router.delete("/", authenticate, async (req, res) => {
     // Soft-delete user
     await db.User.update(
       { isDeleted: true },
-      { where: { userID: user.userID } }
+      { where: { userID: user.userID } },
     );
 
     // Soft-delete linked cooperative (Officer)
     if (role === "Officer") {
       await db.PrimaryCooperative.update(
         { isDeleted: true },
-        { where: { userID: user.userID } }
+        { where: { userID: user.userID } },
       );
     }
 
@@ -242,7 +249,7 @@ router.delete("/", authenticate, async (req, res) => {
     if (role === "Farmer") {
       await db.Farmer.update(
         { isDeleted: true },
-        { where: { userID: user.userID } }
+        { where: { userID: user.userID } },
       );
     }
 

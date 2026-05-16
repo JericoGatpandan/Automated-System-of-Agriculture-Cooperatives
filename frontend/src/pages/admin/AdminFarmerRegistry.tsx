@@ -35,7 +35,8 @@ interface FarmerRow {
   lastName: string;
   suffixName: string | null;
   farmName: string | null;
-  farmLocation: string;
+  municipality: string;
+  barangay: string;
   FarmerCooperatives?: {
     joinedDate: string;
     status: string;
@@ -93,7 +94,8 @@ export function AdminFarmerRegistry() {
       f.firstName.toLowerCase().includes(q) ||
       f.lastName.toLowerCase().includes(q) ||
       (f.farmName || "").toLowerCase().includes(q) ||
-      f.farmLocation.toLowerCase().includes(q) ||
+      f.municipality.toLowerCase().includes(q) ||
+      f.barangay.toLowerCase().includes(q) ||
       f.FarmerCooperatives?.some((fc) =>
         (fc.PrimaryCooperative?.coopName || "").toLowerCase().includes(q),
       )
@@ -244,7 +246,7 @@ export function AdminFarmerRegistry() {
                                 {f.farmName || "—"}
                               </TableCell>
                               <TableCell className="py-4">
-                                {f.farmLocation}
+                                {f.barangay}, {f.municipality}
                               </TableCell>
                               <TableCell className="py-4">
                                 {membership?.PrimaryCooperative?.coopName ||

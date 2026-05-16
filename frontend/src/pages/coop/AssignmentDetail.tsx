@@ -496,7 +496,7 @@ export function AssignmentDetail() {
                   {farmers.map((f: any) => (
                     <SelectItem key={f.farmerID} value={String(f.farmerID)}>
                       {f.lastName}, {f.firstName} —{" "}
-                      {f.farmName || f.farmLocation}
+                      {f.farmName || f.barangay}
                     </SelectItem>
                   ))}
                 </SelectContent>

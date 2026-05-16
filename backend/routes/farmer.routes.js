@@ -5,7 +5,7 @@ import { authenticate, authorize } from "../middleware/auth.middleware.js";
 
 const require = createRequire(import.meta.url);
 const db = require("../models/index.js");
-const { Op } = db.Sequelize;
+const { Op, QueryTypes } = db.Sequelize;
 
 const router = Router();
 
@@ -131,10 +131,9 @@ router.get(
 );
 
 // ─────────────────────────────────────────────────────────
-// POST /api/farmers  — Officer: create farmer (transactional)
+// POST /api/farmers  — Officer: Register New Farmer Member
 // ─────────────────────────────────────────────────────────
 router.post("/", authenticate, authorize("Officer"), async (req, res) => {
-  const t = await db.sequelize.transaction();
   try {
     const {
       firstName,
@@ -144,102 +143,124 @@ router.post("/", authenticate, authorize("Officer"), async (req, res) => {
       email,
       password,
       farmName,
-      farmLocation,
+      municipality,
+      barangay,
     } = req.body;
 
     // Validation
-    if (!firstName || !lastName || !email || !password || !farmLocation) {
-      await t.rollback();
-      return res
-        .status(400)
-        .json({
-          message:
-            "First name, last name, email, password, and farm location are required",
-        });
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !municipality ||
+      !barangay
+    ) {
+      return res.status(400).json({ message: "Required fields are missing" });
     }
+
     if (password.length < 8) {
-      await t.rollback();
       return res
         .status(400)
         .json({ message: "Password must be at least 8 characters" });
     }
 
-    // Check email uniqueness
-    const existing = await db.User.findOne({
-      where: { email },
-      transaction: t,
-    });
+    // 1. Check email uniqueness (Standard Query)
+    const existing = await db.User.findOne({ where: { email } });
     if (existing) {
-      await t.rollback();
       return res.status(409).json({ message: "Email is already in use" });
     }
 
+    // 2. Get Coop and Role info
     const coop = await getOfficerCoop(req.user.userID);
     if (!coop) {
-      await t.rollback();
       return res
         .status(404)
         .json({ message: "Your cooperative was not found" });
     }
 
-    // Get Farmer role ID
-    const farmerRole = await db.Role.findOne({
-      where: { roleName: "Farmer" },
-      transaction: t,
-    });
+    const farmerRole = await db.Role.findOne({ where: { roleName: "Farmer" } });
+    if (!farmerRole) {
+      return res
+        .status(500)
+        .json({ message: "Farmer role configuration missing" });
+    }
 
-    // 1. Create User
     const salt = await bcrypt.genSalt(12);
     const hash = await bcrypt.hash(password, salt);
-    const user = await db.User.create(
-      {
-        roleID: farmerRole.roleID,
-        email,
-        password_hash: hash,
-        isDeleted: false,
-      },
-      { transaction: t },
-    );
 
-    // 2. Create Farmer
-    const farmer = await db.Farmer.create(
-      {
-        userID: user.userID,
-        firstName,
-        middleName: middleName || null,
-        lastName,
-        suffixName: suffixName || null,
-        farmName: farmName || null,
-        farmLocation,
-        isDeleted: false,
-      },
-      { transaction: t },
-    );
+    // 4. Create farmer and related records in a transaction
+    const t = await db.sequelize.transaction();
+    try {
+      // Create user
+      const user = await db.User.create(
+        {
+          roleID: farmerRole.roleID,
+          email,
+          password_hash: hash,
+          isDeleted: false,
+        },
+        { transaction: t },
+      );
 
-    // 3. Create FarmerCooperative membership
-    await db.FarmerCooperative.create(
-      {
-        farmerID: farmer.farmerID,
-        primaryCoopID: coop.primaryCoopID,
-        joinedDate: new Date(),
-        status: "active",
-      },
-      { transaction: t },
-    );
+      // Create farmer
+      const farmer = await db.Farmer.create(
+        {
+          userID: user.userID,
+          firstName,
+          middleName: middleName || null,
+          lastName,
+          suffixName: suffixName || null,
+          farmName: farmName || null,
+          municipality,
+          barangay,
+          isDeleted: false,
+        },
+        { transaction: t },
+      );
 
-    await t.commit();
+      // Create farmer cooperative membership
+      await db.FarmerCooperative.create(
+        {
+          farmerID: farmer.farmerID,
+          primaryCoopID: coop.primaryCoopID,
+          joinedDate: new Date(),
+          status: "active",
+        },
+        { transaction: t },
+      );
 
-    res.status(201).json({
-      message: "Farmer registered successfully",
-      farmer: {
-        farmerID: farmer.farmerID,
-        firstName,
-        lastName,
-        email,
-      },
-    });
+      // Create farmer account
+      await db.FarmerAccount.create(
+        {
+          farmerID: farmer.farmerID,
+          primaryCoopID: coop.primaryCoopID,
+          status: "Pending",
+          createdDate: new Date(),
+          updatedAt: new Date(),
+        },
+        { transaction: t },
+      );
+
+      await t.commit();
+
+      res.status(201).json({
+        message: "Farmer registered successfully",
+        farmer: {
+          email,
+          firstName,
+          lastName,
+        },
+      });
+    } catch (transactionErr) {
+      await t.rollback();
+      console.error("Transaction error:", transactionErr);
+      return res.status(500).json({
+        message: "Failed to register farmer",
+        detail: transactionErr.message,
+      });
+    }
   } catch (err) {
-    await t.rollback();
     console.error("Create farmer error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -269,7 +290,8 @@ router.put("/:id", authenticate, authorize("Officer"), async (req, res) => {
       lastName,
       suffixName,
       farmName,
-      farmLocation,
+      municipality,
+      barangay,
     } = req.body;
 
     await db.Farmer.update(
@@ -279,7 +301,8 @@ router.put("/:id", authenticate, authorize("Officer"), async (req, res) => {
         lastName: lastName || undefined,
         suffixName: suffixName !== undefined ? suffixName : undefined,
         farmName: farmName !== undefined ? farmName : undefined,
-        farmLocation: farmLocation || undefined,
+        municipality: municipality || undefined,
+        barangay: barangay || undefined,
       },
       { where: { farmerID: req.params.id } },
     );

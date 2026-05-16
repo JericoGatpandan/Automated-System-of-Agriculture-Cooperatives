@@ -17,6 +17,9 @@ import orderRoutes from "./routes/order.routes.js";
 import assignmentRoutes from "./routes/assignment.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 import ledgerRoutes from "./routes/ledger.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import requestsRoutes from "./routes/requests.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 const port = PORT || 8800;
@@ -37,6 +40,9 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/ledger", ledgerRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/requests", requestsRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("ASAC System Backend is running!");
