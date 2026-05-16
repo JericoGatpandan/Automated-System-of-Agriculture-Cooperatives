@@ -41,12 +41,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DECIMAL(12, 2),
         defaultValue: 0.00
       },
+      createdAt: DataTypes.DATE,
       updatedAt: DataTypes.DATE,
     },
     {
       sequelize,
       modelName: "FarmerAccount",
-      timestamps: false,
     },
   );
   return FarmerAccount;

@@ -23,7 +23,7 @@ The registry operates across four existing tables:
 | Table | Purpose |
 |-------|---------|
 | `User` | Login credentials (email, password_hash, roleID) |
-| `Farmer` | Personal + farm details (firstName, lastName, farmName, farmLocation) |
+| `Farmer` | Personal + farm details (firstName, lastName, farmName, municipality, barangay) |
 | `FarmerCooperative` | Membership join table (farmerID ↔ primaryCoopID, joinedDate, status) |
 | `Product` | Crops a farmer sells (farmerID → cropTypeID, unitPrice, availableQuantity, qualityGrade) |
 
@@ -64,7 +64,7 @@ The farmer list is the primary view for both Admin and Officer. Follow these tab
 | ☐ | Checkbox for bulk select | Center |
 | Farmer Name | `{lastName}, {firstName} {middleName}` — **bold** | Left |
 | Farm | `{farmName}` | Left |
-| Location | `{farmLocation}` | Left |
+| Location | `{barangay}, {municipality}` | Left |
 | Crops | Comma-separated crop names from Product → CropType | Left |
 | Joined | `{joinedDate}` in `05 Oct 2024` format | Left |
 | Status | `active` / `inactive` color-coded Badge | Center |
@@ -76,7 +76,7 @@ The farmer list is the primary view for both Admin and Officer. Follow these tab
 |--------|---------|-------|
 | Farmer Name | `{lastName}, {firstName}` — **bold** | Left |
 | Farm | `{farmName}` | Left |
-| Location | `{farmLocation}` | Left |
+| Location | `{barangay}, {municipality}` | Left |
 | Cooperative | `{coopName}` from FarmerCooperative → PrimaryCooperative | Left |
 | Crops | Comma-separated crop names | Left |
 | Joined | `{joinedDate}` in `05 Oct 2024` format | Left |
@@ -234,7 +234,8 @@ All endpoints in `backend/routes/farmer.routes.js`, mounted at `/api/farmers`.
       "lastName": "Dela Cruz",
       "suffixName": null,
       "farmName": "Dela Cruz Farm",
-      "farmLocation": "Bula, CamSur",
+      "municipality": "Bula",
+      "barangay": "Sagrada",
       "isDeleted": false,
       "createdAt": "2024-02-01T00:00:00.000Z",
       "User": { "email": "juan.dela.cruz@farmer.ph" },
@@ -269,7 +270,8 @@ All endpoints in `backend/routes/farmer.routes.js`, mounted at `/api/farmers`.
   "email": "ana.reyes@farmer.ph",
   "password": "P@ssw0rd2024",
   "farmName": "Reyes Farm",
-  "farmLocation": "Bula, CamSur"
+  "municipality": "Bula",
+  "barangay": "Sagrada"
 }
 ```
 

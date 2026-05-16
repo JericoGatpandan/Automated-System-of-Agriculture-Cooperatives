@@ -3,7 +3,8 @@
 ROLE (roleID, roleName)  
 USER (userID, roleID\*, email, password\_hash, createdAt, isDeleted)  
 PRIMARY\_COOPERATIVE (primaryCoopID, userID\*, coopName, barangay, municipality, phone, registrationNumber, createdAt, isDeleted)  
-FARMER (farmerID, userID\*, firstName, middleName, lastName, suffixName, farmName, farmLocation, createdAt, isDeleted)  
+FARMER (farmerID, userID*, firstName, middleName, lastName, suffixName, farmName, municipality, barangay, createdAt, isDeleted)
+
 CROPTYPE (cropTypeID, cropName, category)  
 PRODUCT (productID, farmerID\*, cropTypeID\*, unitPrice, availableQuantity, qualityGrade, updatedAt, isDeleted)  
 FARMER\_COOPERATIVE (farmerCoopID, farmerID\*, primaryCoopID\*, joinedDate, status)

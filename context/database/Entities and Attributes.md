@@ -5,7 +5,8 @@
 * User (userID (PK), roleID (FK), email, password\_hash, createdAt, isDeleted)  
 * Role (roleID (PK), roleName)  
 * PrimaryCooperative (primaryCoopID (PK), userID (FK), coopName, barangay, municipality, phone, registrationNumber, isDeleted, createdAt)  
-* Farmer (farmerID (PK), userID (FK), firstName, middleName, lastName, suffixName, farmName, farmLocation, isDeleted, createdAt)  
+* Farmer (farmerID (PK), userID (FK), firstName, middleName, lastName, suffixName, farmName, municipality, barangay, isDeleted, createdAt)
+  
 * CropType (cropTypeID (PK), cropName, category)  
 * Product (productID (PK), farmerID (FK), cropTypeID (FK), unitPrice, availableQuantity, qualityGrade, isDeleted, updatedAt)  
 * FarmerCooperative (farmerCoopID (PK), farmerID (FK), primaryCoopID (FK), joinedDate, status(active, inactive, suspended))

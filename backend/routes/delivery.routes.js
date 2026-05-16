@@ -93,11 +93,9 @@ router.post("/", authenticate, authorize("Admin"), async (req, res) => {
       !consolidationDate ||
       totalTransactionAmount === undefined
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Order, consolidation date, and amount are required",
-        });
+      return res.status(400).json({
+        message: "Order, consolidation date, and amount are required",
+      });
     }
 
     const amountValue = Number(totalTransactionAmount);
@@ -118,18 +116,14 @@ router.post("/", authenticate, authorize("Admin"), async (req, res) => {
       federationRate < 0 ||
       federationRate > 1
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Federation commission rate must be between 0 and 1",
-        });
+      return res.status(400).json({
+        message: "Federation commission rate must be between 0 and 1",
+      });
     }
     if (!Number.isFinite(coopRate) || coopRate < 0 || coopRate > 1) {
-      return res
-        .status(400)
-        .json({
-          message: "Cooperative commission rate must be between 0 and 1",
-        });
+      return res.status(400).json({
+        message: "Cooperative commission rate must be between 0 and 1",
+      });
     }
 
     const order = await db.BuyerOrder.findByPk(orderID);
@@ -211,18 +205,14 @@ router.put("/:id", authenticate, authorize("Admin"), async (req, res) => {
       federationRate < 0 ||
       federationRate > 1
     ) {
-      return res
-        .status(400)
-        .json({
-          message: "Federation commission rate must be between 0 and 1",
-        });
+      return res.status(400).json({
+        message: "Federation commission rate must be between 0 and 1",
+      });
     }
     if (!Number.isFinite(coopRate) || coopRate < 0 || coopRate > 1) {
-      return res
-        .status(400)
-        .json({
-          message: "Cooperative commission rate must be between 0 and 1",
-        });
+      return res.status(400).json({
+        message: "Cooperative commission rate must be between 0 and 1",
+      });
     }
 
     await db.DeliveryRecord.update(
@@ -253,17 +243,12 @@ router.put(
   authenticate,
   authorize("Admin"),
   async (req, res) => {
-    const t = await db.sequelize.transaction();
     try {
-      const delivery = await db.DeliveryRecord.findByPk(req.params.id, {
-        transaction: t,
-      });
+      const delivery = await db.DeliveryRecord.findByPk(req.params.id);
       if (!delivery) {
-        await t.rollback();
         return res.status(404).json({ message: "Delivery not found" });
       }
       if (delivery.status !== "pending") {
-        await t.rollback();
         return res
           .status(409)
           .json({ message: "Delivery is not in pending status" });
@@ -271,148 +256,21 @@ router.put(
 
       const { deliveryDate } = req.body;
       if (!deliveryDate) {
-        await t.rollback();
         return res.status(400).json({ message: "Delivery date is required" });
       }
-
-      // 1. Update delivery status
       await db.DeliveryRecord.update(
-        { status: "delivered", deliveryDate },
-        { where: { deliveryID: delivery.deliveryID }, transaction: t },
+        { deliveryDate },
+        { where: { deliveryID: delivery.deliveryID } },
       );
 
-      // 2. Resolve fulfilling farmers from the order chain
-      const assignments = await db.CoopAssignment.findAll({
-        where: { orderID: delivery.orderID },
-        include: [
-          {
-            model: db.FarmerFulfillment,
-            where: { status: ["confirmed", "ready"] },
-            required: false,
-            include: [{ model: db.Farmer, attributes: ["farmerID"] }],
-          },
-        ],
-        transaction: t,
+      await db.sequelize.query("CALL sp_complete_delivery_v2(:deliveryID);", {
+        replacements: { deliveryID: delivery.deliveryID },
       });
-
-      // Collect all fulfillments with their cooperative context
-      const fulfillments = [];
-      for (const assignment of assignments) {
-        for (const ff of assignment.FarmerFulfillments || []) {
-          fulfillments.push({
-            farmerID: ff.farmerID,
-            quantityCommitted: ff.quantityCommitted,
-            primaryCoopID: assignment.primaryCoopID,
-          });
-        }
-      }
-
-      let salesRecordsCreated = 0;
-      let feeRecordsCreated = 0;
-
-      if (fulfillments.length > 0) {
-        // 3. Calculate proportional amounts
-        const totalQuantity = fulfillments.reduce(
-          (s, f) => s + f.quantityCommitted,
-          0,
-        );
-        const T = parseFloat(delivery.totalTransactionAmount);
-        const RF = parseFloat(delivery.commissionRateFederation);
-        const RC = parseFloat(delivery.commissionRateCoop);
-
-        for (const ff of fulfillments) {
-          const proportion = ff.quantityCommitted / totalQuantity;
-          const grossAmount = parseFloat((proportion * T).toFixed(2));
-          const federationFee = parseFloat((grossAmount * RF).toFixed(2));
-          const coopFee = parseFloat((grossAmount * RC).toFixed(2));
-          const commissionAmount = parseFloat(
-            (federationFee + coopFee).toFixed(2),
-          );
-          const netAmount = parseFloat(
-            (grossAmount - commissionAmount).toFixed(2),
-          );
-
-          // 4. Find or create FarmerAccount
-          let farmerAccount = await db.FarmerAccount.findOne({
-            where: { farmerID: ff.farmerID, primaryCoopID: ff.primaryCoopID },
-            transaction: t,
-          });
-          if (!farmerAccount) {
-            farmerAccount = await db.FarmerAccount.create(
-              {
-                farmerID: ff.farmerID,
-                primaryCoopID: ff.primaryCoopID,
-                createdDate: new Date(),
-                status: "active",
-              },
-              { transaction: t },
-            );
-          }
-
-          // 5. Create SalesRecord
-          const salesRecord = await db.SalesRecord.create(
-            {
-              farmerAccountID: farmerAccount.farmerAccountID,
-              deliveryID: delivery.deliveryID,
-              grossAmount,
-              commissionAmount,
-              netAmount,
-              transactionDate: deliveryDate,
-              remarks: `Auto-generated from delivery DEL-${delivery.deliveryID}`,
-            },
-            { transaction: t },
-          );
-          salesRecordsCreated++;
-
-          // 6. Create 4 FeeRecords
-          const feeTypes = [
-            { feeType: "federationFee", rate: RF, amount: federationFee },
-            { feeType: "coopFee", rate: RC, amount: coopFee },
-            { feeType: "capitalContribution", rate: 0, amount: 0 },
-            { feeType: "capitalRetention", rate: 0, amount: 0 },
-          ];
-
-          for (const fee of feeTypes) {
-            await db.FeeRecord.create(
-              {
-                farmerAccountID: farmerAccount.farmerAccountID,
-                salesRecordID: salesRecord.salesRecordID,
-                feeType: fee.feeType,
-                rate: fee.rate,
-                amount: fee.amount,
-                status: "recorded",
-              },
-              { transaction: t },
-            );
-            feeRecordsCreated++;
-          }
-        }
-      }
-
-      // 7. Sync BuyerOrder status
-      const allDeliveries = await db.DeliveryRecord.findAll({
-        where: { orderID: delivery.orderID },
-        transaction: t,
-      });
-      const allDelivered = allDeliveries.every((d) =>
-        d.deliveryID === delivery.deliveryID ? true : d.status === "delivered",
-      );
-      if (allDelivered) {
-        await db.BuyerOrder.update(
-          { status: "completed" },
-          { where: { orderID: delivery.orderID }, transaction: t },
-        );
-      }
-
-      await t.commit();
 
       res.json({
-        message: `Delivery completed. Generated ${salesRecordsCreated} sales records and ${feeRecordsCreated} fee records.`,
-        salesRecordsCreated,
-        feeRecordsCreated,
+        message: "Delivery completed. Sales and fee records generated.",
       });
     } catch (err) {
-      await t.rollback();
       console.error("Deliver error:", err);
       res.status(500).json({ message: "Internal server error" });
     }

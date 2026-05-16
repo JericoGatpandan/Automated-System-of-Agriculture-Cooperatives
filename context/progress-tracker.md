@@ -129,6 +129,18 @@ Update this file after every meaningful implementation change.
 - **Added App Shell Preferences**:
   - Collapsible sidebar with header toggle and icon-only minimized state.
   - Settings page with Appearance theme toggle (Light/Dark) and profile dropdown entry.
+- **Database Optimization Phase 2**:
+  - Added stored procedures for delivery completion, statement generation, loan status refresh, and ledger summaries.
+  - Added indexes for ledger and delivery join paths.
+  - Updated delivery and ledger endpoints to call new procedures.
+  - Updated monthly purge event to target AuditLogs only.
+
+- **Database Seeding Expansion & Alignment**:
+  - Updated all 16 existing seeders to align with May 16, 2026 reference date.
+  - Ensured mathematical consistency across the Order -> Assignment -> Fulfillment -> Delivery -> Sales -> Fee chain.
+  - Expanded Farmer memberships and accounts to support more complex scenarios (multi-coop membership).
+  - Added new seeders for `PartnershipRequests` and `Notifications`.
+  - Total seed records now cover all 19 primary cooperatives and diverse transaction statuses.
 
 ## In Progress
 

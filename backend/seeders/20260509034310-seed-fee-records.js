@@ -7,21 +7,22 @@
  * one per commission component:
  *   1. federationFee (3% of gross)
  *   2. coopFee (5% of gross)
- *   3. capitalContribution (fixed 2% of gross — common coop practice)
- *   4. capitalRetention (fixed 1% of gross — common coop practice)
+ *   3. capitalContribution (fixed 2% of gross)
+ *   4. capitalRetention (fixed 1% of gross)
  *
- * We generate 4 fee records per sales record = 20 total fee records.
+ * We generate 4 fee records per sales record.
  *
  * @type {import('sequelize-cli').Migration}
  */
 module.exports = {
   async up(queryInterface, Sequelize) {
     const salesData = [
-      { salesRecordID: 1, farmerAccountID: 1, gross: 22500, date: '2024-09-22' },
-      { salesRecordID: 2, farmerAccountID: 5, gross: 22500, date: '2024-09-22' },
-      { salesRecordID: 3, farmerAccountID: 3, gross: 25000, date: '2024-09-27' },
-      { salesRecordID: 4, farmerAccountID: 4, gross: 10000, date: '2024-09-19' },
-      { salesRecordID: 5, farmerAccountID: 2, gross: 15000, date: '2024-09-23' },
+      { salesRecordID: 1, farmerAccountID: 1, gross: 9000, date: '2026-05-12' },
+      { salesRecordID: 2, farmerAccountID: 18, gross: 9000, date: '2026-05-12' },
+      { salesRecordID: 3, farmerAccountID: 17, gross: 15750, date: '2026-05-12' },
+      { salesRecordID: 4, farmerAccountID: 2, gross: 11250, date: '2026-05-12' },
+      { salesRecordID: 5, farmerAccountID: 2, gross: 25000, date: '2026-05-14' },
+      { salesRecordID: 6, farmerAccountID: 4, gross: 12500, date: '2026-05-09' },
     ];
 
     const feeTypes = [

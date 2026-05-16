@@ -50,7 +50,9 @@ CREATE TABLE Farmer (
   lastName VARCHAR(50),  
   suffixName VARCHAR(10),  
   farmName VARCHAR(100),  
-  farmLocation VARCHAR(150),  
+municipality VARCHAR(100),
+barangay VARCHAR(100),
+
   createdAt  DATETIME DEFAULT CURRENT\_TIMESTAMP,  
   isDeleted  BOOLEAN  DEFAULT 0,  
   FOREIGN KEY (userID) REFERENCES User(userID)  

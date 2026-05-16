@@ -9,7 +9,7 @@ Notes:
 npx sequelize-cli model:generate --name Role --attributes roleID:integer,roleName:string
 npx sequelize-cli model:generate --name User --attributes userID:integer,roleID:integer,email:string,password_hash:string,createdAt:date,isDeleted:boolean
 npx sequelize-cli model:generate --name PrimaryCooperative --attributes primaryCoopID:integer,userID:integer,coopName:string,barangay:string,municipality:string,phone:string,registrationNumber:string,createdAt:date,isDeleted:boolean
-npx sequelize-cli model:generate --name Farmer --attributes farmerID:integer,userID:integer,firstName:string,middleName:string,lastName:string,suffixName:string,farmName:string,farmLocation:string,createdAt:date,isDeleted:boolean
+npx sequelize-cli model:generate --name Farmer --attributes farmerID:integer,userID:integer,firstName:string,middleName:string,lastName:string,suffixName:string,farmName:string,municipality:string,barangay:string,createdAt:date,isDeleted:boolean
 npx sequelize-cli model:generate --name CropType --attributes cropTypeID:integer,cropName:string,category:string
 npx sequelize-cli model:generate --name Product --attributes productID:integer,farmerID:integer,cropTypeID:integer,unitPrice:decimal,availableQuantity:integer,qualityGrade:string,updatedAt:date,isDeleted:boolean
 npx sequelize-cli model:generate --name FarmerCooperative --attributes farmerCoopID:integer,farmerID:integer,primaryCoopID:integer,joinedDate:date,status:string

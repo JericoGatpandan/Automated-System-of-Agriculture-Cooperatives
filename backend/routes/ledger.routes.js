@@ -163,8 +163,7 @@ async function resolveFarmerLedgerContext(req, farmerIdParam, coopIdQuery) {
   const farmer = await db.Farmer.findOne({
     where: { farmerID, isDeleted: false },
   });
-  if (!farmer)
-    return { error: { status: 404, message: "Farmer not found" } };
+  if (!farmer) return { error: { status: 404, message: "Farmer not found" } };
 
   const accounts = await db.FarmerAccount.findAll({
     where: { farmerID },
@@ -191,7 +190,9 @@ async function resolveFarmerLedgerContext(req, farmerIdParam, coopIdQuery) {
       where: { userID: req.user.userID, isDeleted: false },
     });
     if (!userFarmer || userFarmer.farmerID !== farmerID) {
-      return { error: { status: 403, message: "You can only view your own ledger" } };
+      return {
+        error: { status: 403, message: "You can only view your own ledger" },
+      };
     }
     selected = accounts;
     return { farmer, accounts: selected, needsCoopId: false, error: null };
@@ -203,7 +204,9 @@ async function resolveFarmerLedgerContext(req, farmerIdParam, coopIdQuery) {
       return { error: { status: 403, message: "Cooperative not found" } };
     selected = accounts.filter((a) => a.primaryCoopID === oc.primaryCoopID);
     if (selected.length === 0) {
-      return { error: { status: 403, message: "Farmer not in your cooperative" } };
+      return {
+        error: { status: 403, message: "Farmer not in your cooperative" },
+      };
     }
   }
 
@@ -231,7 +234,9 @@ async function resolveFarmerLedgerContext(req, farmerIdParam, coopIdQuery) {
 }
 
 async function buildAccountLedgerPayload(farmerAccountID) {
-  await refreshLoanStatusesForAccount(farmerAccountID);
+  await db.sequelize.query("CALL sp_refresh_loan_statuses(:farmerAccountID)", {
+    replacements: { farmerAccountID },
+  });
 
   const farmerAccount = await db.FarmerAccount.findByPk(farmerAccountID, {
     include: [
@@ -248,25 +253,27 @@ async function buildAccountLedgerPayload(farmerAccountID) {
       },
       {
         model: db.PrimaryCooperative,
-        attributes: [
-          "primaryCoopID",
-          "coopName",
-          "barangay",
-          "municipality",
-        ],
+        attributes: ["primaryCoopID", "coopName", "barangay", "municipality"],
       },
     ],
   });
 
   if (!farmerAccount) return null;
 
-  const allTime = { start: null, end: null };
-  const salesAgg = await aggregateSalesForAccount(farmerAccountID, allTime);
-  const shareAllTime = await aggregateShareCapitalForAccount(
-    farmerAccountID,
-    allTime,
+  const [summaryRows] = await db.sequelize.query(
+    "CALL sp_get_account_ledger_summary(:farmerAccountID, :start, :end)",
+    {
+      replacements: { farmerAccountID, start: null, end: null },
+    },
   );
-  const outstanding = await sumOutstandingLoans(farmerAccountID);
+  const summaryRow = Array.isArray(summaryRows) ? summaryRows[0] : summaryRows;
+  const summary = {
+    totalGrossSales: num(summaryRow?.totalGrossSales || 0),
+    totalCommission: num(summaryRow?.totalCommission || 0),
+    totalShareCapital: num(summaryRow?.totalShareCapital || 0),
+    netBalance: num(summaryRow?.netBalance || 0),
+    outstandingLoans: num(summaryRow?.outstandingLoans || 0),
+  };
 
   const salesRecords = await db.SalesRecord.findAll({
     where: { farmerAccountID },
@@ -312,13 +319,7 @@ async function buildAccountLedgerPayload(farmerAccountID) {
     },
     farmer: farmerAccount.Farmer,
     cooperative: farmerAccount.PrimaryCooperative,
-    summary: {
-      totalGrossSales: salesAgg.gross,
-      totalCommission: salesAgg.commission,
-      totalShareCapital: shareAllTime,
-      netBalance: salesAgg.net,
-      outstandingLoans: outstanding,
-    },
+    summary,
     salesRecords: salesRecords.map((s) => ({
       salesRecordID: s.salesRecordID,
       deliveryID: s.deliveryID,
@@ -362,52 +363,37 @@ async function buildCoopLedgerResponse(req, coopId) {
     whereAccount.status = status;
   }
 
-  let accounts = await db.FarmerAccount.findAll({
-    where: whereAccount,
-    include: [
-      {
-        model: db.Farmer,
-        where: { isDeleted: false },
-        required: true,
+  const [summaryRows] = await db.sequelize.query(
+    "CALL sp_build_coop_ledger_summary(:coopId, :start, :end)",
+    {
+      replacements: {
+        coopId,
+        start: dateRange.start ?? null,
+        end: dateRange.end ?? null,
       },
-    ],
-  });
+    },
+  );
 
+  let rows = Array.isArray(summaryRows) ? summaryRows : [];
   if (search) {
     const q = String(search).toLowerCase();
-    accounts = accounts.filter((a) => {
-      const f = a.Farmer;
-      const name = farmerFullName(f).toLowerCase();
-      return name.includes(q) || String(f.farmerID).includes(q);
+    rows = rows.filter((row) => {
+      const name = String(row.farmerName || "").toLowerCase();
+      return name.includes(q) || String(row.farmerID).includes(q);
     });
   }
 
-  const rows = [];
-  for (const acc of accounts) {
-    const salesAgg = await aggregateSalesForAccount(
-      acc.farmerAccountID,
-      dateRange,
-    );
-    const shareCap = await aggregateShareCapitalForAccount(
-      acc.farmerAccountID,
-      dateRange,
-    );
-    const outstanding = await sumOutstandingLoans(acc.farmerAccountID);
-
-    rows.push({
-      farmerID: acc.Farmer.farmerID,
-      farmerName: farmerFullName(acc.Farmer),
-      farmerAccountID: acc.farmerAccountID,
-      accountStatus: acc.status,
-      totalGrossSales: salesAgg.gross,
-      totalCommission: salesAgg.commission,
-      totalShareCapital: shareCap,
-      outstandingLoans: outstanding,
-      netBalance: salesAgg.net,
-    });
-  }
-
-  rows.sort((a, b) => a.farmerName.localeCompare(b.farmerName));
+  rows = rows.map((row) => ({
+    farmerID: row.farmerID,
+    farmerName: row.farmerName,
+    farmerAccountID: row.farmerAccountID,
+    accountStatus: row.accountStatus,
+    totalGrossSales: num(row.totalGrossSales),
+    totalCommission: num(row.totalCommission),
+    totalShareCapital: num(row.totalShareCapital),
+    outstandingLoans: num(row.outstandingLoans),
+    netBalance: num(row.netBalance),
+  }));
 
   return {
     data: {
@@ -474,111 +460,104 @@ async function buildFarmerLedgerResponse(req, farmerIdStr) {
 // ─────────────────────────────────────────────────────────
 // GET /api/ledger/summary — Federation overview (Admin)
 // ─────────────────────────────────────────────────────────
-router.get(
-  "/summary",
-  authenticate,
-  authorize("Admin"),
-  async (_req, res) => {
-    try {
-      const deliveriesCompleted = await db.DeliveryRecord.count({
-        where: { status: "delivered" },
+router.get("/summary", authenticate, authorize("Admin"), async (_req, res) => {
+  try {
+    const deliveriesCompleted = await db.DeliveryRecord.count({
+      where: { status: "delivered" },
+    });
+
+    const totalGrossSales = num((await db.SalesRecord.sum("grossAmount")) || 0);
+    const totalFederationFees = num(
+      (await db.FeeRecord.sum("amount", {
+        where: { feeType: "federationFee" },
+      })) || 0,
+    );
+    const totalCooperativeFees = num(
+      (await db.FeeRecord.sum("amount", {
+        where: { feeType: "coopFee" },
+      })) || 0,
+    );
+    const totalShareCapital = num(
+      (await db.FeeRecord.sum("amount", {
+        where: {
+          feeType: { [Op.in]: ["capitalContribution", "capitalRetention"] },
+        },
+      })) || 0,
+    );
+
+    const coops = await db.PrimaryCooperative.findAll({
+      where: { isDeleted: false },
+      attributes: ["primaryCoopID", "coopName"],
+      order: [["coopName", "ASC"]],
+    });
+
+    const cooperativeSummary = [];
+    for (const coop of coops) {
+      const accounts = await db.FarmerAccount.findAll({
+        where: { primaryCoopID: coop.primaryCoopID },
+        attributes: ["farmerAccountID", "farmerID"],
       });
+      const accountIds = accounts.map((a) => a.farmerAccountID);
+      const farmerIds = [...new Set(accounts.map((a) => a.farmerID))];
 
-      const totalGrossSales = num(
-        (await db.SalesRecord.sum("grossAmount")) || 0,
-      );
-      const totalFederationFees = num(
-        (await db.FeeRecord.sum("amount", {
-          where: { feeType: "federationFee" },
-        })) || 0,
-      );
-      const totalCooperativeFees = num(
-        (await db.FeeRecord.sum("amount", {
-          where: { feeType: "coopFee" },
-        })) || 0,
-      );
-      const totalShareCapital = num(
-        (await db.FeeRecord.sum("amount", {
-          where: {
-            feeType: { [Op.in]: ["capitalContribution", "capitalRetention"] },
-          },
-        })) || 0,
-      );
+      let totalGross = 0;
+      let totalNet = 0;
+      let fed = 0;
+      let coopFee = 0;
 
-      const coops = await db.PrimaryCooperative.findAll({
-        where: { isDeleted: false },
-        attributes: ["primaryCoopID", "coopName"],
-        order: [["coopName", "ASC"]],
-      });
-
-      const cooperativeSummary = [];
-      for (const coop of coops) {
-        const accounts = await db.FarmerAccount.findAll({
-          where: { primaryCoopID: coop.primaryCoopID },
-          attributes: ["farmerAccountID", "farmerID"],
-        });
-        const accountIds = accounts.map((a) => a.farmerAccountID);
-        const farmerIds = [...new Set(accounts.map((a) => a.farmerID))];
-
-        let totalGross = 0;
-        let totalNet = 0;
-        let fed = 0;
-        let coopFee = 0;
-
-        if (accountIds.length > 0) {
-          totalGross = num(
-            (await db.SalesRecord.sum("grossAmount", {
-              where: { farmerAccountID: { [Op.in]: accountIds } },
-            })) || 0,
-          );
-          totalNet = num(
-            (await db.SalesRecord.sum("netAmount", {
-              where: { farmerAccountID: { [Op.in]: accountIds } },
-            })) || 0,
-          );
-          fed = num(
-            (await db.FeeRecord.sum("amount", {
-              where: {
-                farmerAccountID: { [Op.in]: accountIds },
-                feeType: "federationFee",
-              },
-            })) || 0,
-          );
-          coopFee = num(
-            (await db.FeeRecord.sum("amount", {
-              where: {
-                farmerAccountID: { [Op.in]: accountIds },
-                feeType: "coopFee",
-              },
-            })) || 0,
-          );
-        }
-
-        cooperativeSummary.push({
-          primaryCoopID: coop.primaryCoopID,
-          coopName: coop.coopName,
-          farmersWithAccounts: farmerIds.length,
-          totalGrossSales: totalGross,
-          totalNetEarnings: totalNet,
-          totalFederationFee: fed,
-          totalCooperativeFee: coopFee,
-        });
+      if (accountIds.length > 0) {
+        totalGross = num(
+          (await db.SalesRecord.sum("grossAmount", {
+            where: { farmerAccountID: { [Op.in]: accountIds } },
+          })) || 0,
+        );
+        totalNet = num(
+          (await db.SalesRecord.sum("netAmount", {
+            where: { farmerAccountID: { [Op.in]: accountIds } },
+          })) || 0,
+        );
+        fed = num(
+          (await db.FeeRecord.sum("amount", {
+            where: {
+              farmerAccountID: { [Op.in]: accountIds },
+              feeType: "federationFee",
+            },
+          })) || 0,
+        );
+        coopFee = num(
+          (await db.FeeRecord.sum("amount", {
+            where: {
+              farmerAccountID: { [Op.in]: accountIds },
+              feeType: "coopFee",
+            },
+          })) || 0,
+        );
       }
 
-      res.json({
-        deliveriesCompleted,
-        totalGrossSales,
-        totalFederationFees,
-        totalCooperativeFees,
-        totalShareCapital,
-        cooperativeSummary,
+      cooperativeSummary.push({
+        primaryCoopID: coop.primaryCoopID,
+        coopName: coop.coopName,
+        farmersWithAccounts: farmerIds.length,
+        totalGrossSales: totalGross,
+        totalNetEarnings: totalNet,
+        totalFederationFee: fed,
+        totalCooperativeFee: coopFee,
       });
-    } catch (err) {
-      console.error("Ledger summary error:", err);
-      res.status(500).json({ message: "Internal server error" });
     }
-  },
-);
+
+    res.json({
+      deliveriesCompleted,
+      totalGrossSales,
+      totalFederationFees,
+      totalCooperativeFees,
+      totalShareCapital,
+      cooperativeSummary,
+    });
+  } catch (err) {
+    console.error("Ledger summary error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 // ─────────────────────────────────────────────────────────
 // GET /api/ledger/coops/me — Officer cooperative ledger list
@@ -645,7 +624,10 @@ router.get(
       if (!farmer)
         return res.status(404).json({ message: "Farmer profile not found" });
 
-      const result = await buildFarmerLedgerResponse(req, String(farmer.farmerID));
+      const result = await buildFarmerLedgerResponse(
+        req,
+        String(farmer.farmerID),
+      );
       if (result.error) {
         return res
           .status(result.error.status)
@@ -703,9 +685,7 @@ async function resolveTargetFarmerAccount(req, farmerIdStr, body = {}) {
       (a) => a.farmerAccountID === Number(body.farmerAccountID),
     );
   } else if (body.coopId != null) {
-    account = accounts.find(
-      (a) => a.primaryCoopID === Number(body.coopId),
-    );
+    account = accounts.find((a) => a.primaryCoopID === Number(body.coopId));
   } else if (accounts.length === 1) {
     account = accounts[0];
   }
@@ -727,12 +707,16 @@ async function resolveTargetFarmerAccount(req, farmerIdStr, body = {}) {
       where: { userID: req.user.userID, isDeleted: false },
     });
     if (!uf || uf.farmerID !== farmerID) {
-      return { error: { status: 403, message: "You can only access your own ledger" } };
+      return {
+        error: { status: 403, message: "You can only access your own ledger" },
+      };
     }
   } else if (req.user.role === "Officer") {
     const oc = await getOfficerCoop(req.user.userID);
     if (!oc || account.primaryCoopID !== oc.primaryCoopID) {
-      return { error: { status: 403, message: "Not allowed for this account" } };
+      return {
+        error: { status: 403, message: "Not allowed for this account" },
+      };
     }
   }
 
@@ -760,39 +744,35 @@ router.post(
         coopId,
       });
       if (ctx.error) {
-        return res.status(ctx.error.status).json({ message: ctx.error.message });
+        return res
+          .status(ctx.error.status)
+          .json({ message: ctx.error.message });
       }
 
       const start = new Date(periodStart);
       const end = new Date(periodEnd);
-      end.setHours(23, 59, 59, 999);
-      const range = { start, end };
 
-      const salesAgg = await aggregateSalesForAccount(
-        ctx.account.farmerAccountID,
-        range,
-      );
-      const shareCap = await aggregateShareCapitalForAccount(
-        ctx.account.farmerAccountID,
-        range,
-      );
-      await refreshLoanStatusesForAccount(ctx.account.farmerAccountID);
-      const outstandingLoans = await sumOutstandingLoans(
-        ctx.account.farmerAccountID,
-      );
-
-      const statement = await db.PrintedStatement.create({
-        farmerAccountID: ctx.account.farmerAccountID,
-        periodStart: start,
-        periodEnd: end,
-        generatedBy: req.user.userID,
-        generatedDate: new Date(),
-        totalGrossSales: salesAgg.gross,
-        totalCommission: salesAgg.commission,
-        totalShareCapital: shareCap,
-        totalLoans: outstandingLoans,
-        netBalance: salesAgg.net,
+      await db.sequelize.query("SET @generated_by = :generatedBy", {
+        replacements: { generatedBy: req.user.userID },
       });
+
+      const [rows] = await db.sequelize.query(
+        "CALL sp_generate_statement(:farmerAccountID, :start, :end)",
+        {
+          replacements: {
+            farmerAccountID: ctx.account.farmerAccountID,
+            start,
+            end,
+          },
+        },
+      );
+
+      const statement = Array.isArray(rows) ? rows[0] : rows;
+      if (!statement) {
+        return res
+          .status(500)
+          .json({ message: "Failed to generate statement" });
+      }
 
       res.status(201).json({
         statement: {
@@ -825,15 +805,16 @@ router.post(
   async (req, res) => {
     const t = await db.sequelize.transaction();
     try {
-      const { loanAmount, purpose, releaseDate, dueDate, farmerAccountID, coopId } =
-        req.body;
+      const {
+        loanAmount,
+        purpose,
+        releaseDate,
+        dueDate,
+        farmerAccountID,
+        coopId,
+      } = req.body;
 
-      if (
-        loanAmount === undefined ||
-        !purpose ||
-        !releaseDate ||
-        !dueDate
-      ) {
+      if (loanAmount === undefined || !purpose || !releaseDate || !dueDate) {
         await t.rollback();
         return res.status(400).json({
           message: "loanAmount, purpose, releaseDate, and dueDate are required",
@@ -846,13 +827,17 @@ router.post(
       });
       if (ctx.error) {
         await t.rollback();
-        return res.status(ctx.error.status).json({ message: ctx.error.message });
+        return res
+          .status(ctx.error.status)
+          .json({ message: ctx.error.message });
       }
 
       const lamt = num(loanAmount);
       if (lamt <= 0) {
         await t.rollback();
-        return res.status(400).json({ message: "Loan amount must be positive" });
+        return res
+          .status(400)
+          .json({ message: "Loan amount must be positive" });
       }
 
       const loan = await db.LoanRecord.create(
@@ -923,10 +908,7 @@ router.put(
       }
 
       const oc = await getOfficerCoop(req.user.userID);
-      if (
-        !oc ||
-        loan.FarmerAccount.primaryCoopID !== oc.primaryCoopID
-      ) {
+      if (!oc || loan.FarmerAccount.primaryCoopID !== oc.primaryCoopID) {
         await t.rollback();
         return res.status(403).json({ message: "Not allowed for this loan" });
       }
