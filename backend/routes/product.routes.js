@@ -5,6 +5,7 @@ import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import multer from "multer";
+import sharp from "sharp";
 import { authenticate, authorize } from "../middleware/auth.middleware.js";
 
 const require = createRequire(import.meta.url);
@@ -30,7 +31,7 @@ const imageStorage = multer.diskStorage({
 
 const upload = multer({
   storage: imageStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, callback) => {
     if (!file.mimetype.startsWith("image/")) {
       callback(new Error("Only image files are allowed"));
@@ -42,9 +43,49 @@ const upload = multer({
 
 const router = Router();
 
-function getStoredImagePath(file) {
+// Max dimensions for product images (px)
+const IMAGE_MAX_WIDTH = 800;
+const IMAGE_MAX_HEIGHT = 800;
+const IMAGE_QUALITY = 80;
+
+/**
+ * Compress and resize an uploaded image in-place.
+ * Converts to WebP (supports transparency), caps dimensions at 800×800, quality 80%.
+ * Returns the new filename (always .webp).
+ */
+async function compressImage(file) {
+  if (!file) return null;
+
+  const inputPath = path.join(uploadDir, file.filename);
+  const baseName = path.parse(file.filename).name;
+  const outputName = `${baseName}.webp`;
+  const outputPath = path.join(uploadDir, outputName);
+
+  try {
+    await sharp(inputPath)
+      .resize(IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: IMAGE_QUALITY })
+      .toFile(outputPath);
+
+    // Remove the original if it differs from the output
+    if (file.filename !== outputName) {
+      await fsPromises.unlink(inputPath).catch(() => {});
+    }
+
+    return outputName;
+  } catch {
+    // If compression fails, keep the original
+    return file.filename;
+  }
+}
+
+async function getStoredImagePath(file) {
   if (!file) return undefined;
-  return `${publicImagePrefix}/${file.filename}`;
+  const compressedName = await compressImage(file);
+  return `${publicImagePrefix}/${compressedName}`;
 }
 
 function isManagedProductImage(imagePathValue) {
@@ -320,6 +361,88 @@ router.get("/my-coop", authenticate, authorize("Officer"), async (req, res) => {
   }
 });
 
+// GET /api/products/unassigned-orders/:cropTypeID — count orders for a crop
+// that have no coop assignments yet (status = "pending")
+router.get(
+  "/unassigned-orders/:cropTypeID",
+  authenticate,
+  authorize("Admin", "Officer"),
+  async (req, res) => {
+    try {
+      const cropTypeID = parseInt(req.params.cropTypeID);
+
+      // Find orders for this crop that are still pending (no assignments)
+      const orders = await db.BuyerOrder.findAll({
+        where: {
+          cropTypeID,
+          status: "pending",
+        },
+        attributes: ["orderID", "buyerName", "buyerCompany", "requestedQuantity", "urgencyLevel", "orderDate"],
+        include: [{ model: db.CropType, attributes: ["cropName"] }],
+        order: [["orderDate", "DESC"]],
+      });
+
+      res.json({ count: orders.length, orders });
+    } catch (err) {
+      console.error("Unassigned orders error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// GET /api/products/coop-assignments/:cropTypeID — Officer: list assignments for this crop in my coop
+router.get(
+  "/coop-assignments/:cropTypeID",
+  authenticate,
+  authorize("Officer"),
+  async (req, res) => {
+    try {
+      const coop = await getOfficerCoop(req.user.userID);
+      if (!coop)
+        return res.status(404).json({ message: "Cooperative not found" });
+
+      const cropTypeID = parseInt(req.params.cropTypeID);
+
+      const assignments = await db.CoopAssignment.findAll({
+        where: { primaryCoopID: coop.primaryCoopID },
+        include: [
+          {
+            model: db.BuyerOrder,
+            where: { cropTypeID },
+            include: [{ model: db.CropType, attributes: ["cropName"] }],
+          },
+          {
+            model: db.FarmerFulfillment,
+            include: [
+              {
+                model: db.Farmer,
+                attributes: ["farmerID", "firstName", "lastName"],
+              },
+            ],
+          },
+        ],
+        order: [["assignedDate", "DESC"]],
+      });
+
+      // Count assignments that still need farmer fulfillments
+      const needsFarmer = assignments.filter((a) => {
+        const fulfillments = a.FarmerFulfillments || [];
+        const committed = fulfillments.reduce((s, f) => s + f.quantityCommitted, 0);
+        return committed < a.quantityRequired;
+      });
+
+      res.json({
+        assignments,
+        totalAssignments: assignments.length,
+        needsFarmerCount: needsFarmer.length,
+      });
+    } catch (err) {
+      console.error("Coop assignments by crop error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
 // GET /api/products/:id — Admin or Officer: single product detail
 router.get(
   "/:id",
@@ -372,7 +495,7 @@ router.post(
         qualityGrade,
         imagePath,
       } = req.body;
-      const uploadedImagePath = getStoredImagePath(req.file);
+      const uploadedImagePath = await getStoredImagePath(req.file);
       const resolvedImagePath = uploadedImagePath ?? imagePath ?? null;
 
       if (!farmerID || !cropTypeID) {
@@ -445,7 +568,7 @@ router.put(
         qualityGrade,
         imagePath,
       } = req.body;
-      const uploadedImagePath = getStoredImagePath(req.file);
+      const uploadedImagePath = await getStoredImagePath(req.file);
       const nextImagePath = uploadedImagePath ?? imagePath;
 
       if (farmerID !== undefined && !farmerIDs.includes(Number(farmerID))) {

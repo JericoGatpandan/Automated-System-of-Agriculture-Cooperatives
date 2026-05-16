@@ -29,7 +29,7 @@ export function SettingsPage() {
   }, [theme]);
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="w-full mx-auto px-6 py-8">
         <div className="flex flex-col gap-1 mb-6">
           <h1 className="text-xl font-bold text-foreground">Settings</h1>

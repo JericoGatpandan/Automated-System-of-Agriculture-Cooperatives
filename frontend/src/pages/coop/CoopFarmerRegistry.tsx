@@ -192,7 +192,7 @@ export function CoopFarmerRegistry() {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Page header */}
         <div className="flex items-center gap-3 mb-6">

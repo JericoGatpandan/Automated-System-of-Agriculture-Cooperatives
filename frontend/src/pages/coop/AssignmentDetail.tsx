@@ -116,14 +116,6 @@ export function AssignmentDetail() {
     }
   }, [id, logout, navigate]);
 
-  useEffect(() => {
-    fetchAssignment();
-  }, [fetchAssignment]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [assignment?.assignmentID]);
-
   const totalCommitted =
     assignment?.FarmerFulfillments?.reduce(
       (s: number, f: any) => s + f.quantityCommitted,
@@ -142,6 +134,14 @@ export function AssignmentDetail() {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
+
+  useEffect(() => {
+    fetchAssignment();
+  }, [fetchAssignment]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [assignment?.assignmentID]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -418,15 +418,17 @@ export function AssignmentDetail() {
                                 updateFulfillmentStatus(f.fulfillmentID, v)
                               }
                             >
-                              <SelectTrigger className="w-28 h-8">
-                                <Badge
-                                  variant="outline"
-                                  className={STATUS_COLORS[f.status] || ""}
-                                >
-                                  {f.status}
-                                </Badge>
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue>
+                                  <Badge
+                                    variant="outline"
+                                    className={STATUS_COLORS[f.status] || ""}
+                                  >
+                                    {f.status}
+                                  </Badge>
+                                </SelectValue>
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent position="popper" sideOffset={4}>
                                 {FULFILLMENT_STATUSES.map((s) => (
                                   <SelectItem key={s} value={s}>
                                     {s}

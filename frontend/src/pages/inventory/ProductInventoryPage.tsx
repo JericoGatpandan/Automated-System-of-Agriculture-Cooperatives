@@ -224,7 +224,7 @@ function ProductImage({
 
   if (!src || broken) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-gradient-to-br from-[var(--color-bg-subtle)] to-[var(--color-bg-canvas)] text-[var(--color-text-muted)]">
+      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-white dark:bg-muted text-muted-foreground">
         <div className="flex flex-col items-center gap-2 text-center px-4">
           <ImageIcon className="h-8 w-8" />
           <span className="text-xs font-medium uppercase tracking-[0.22em]">
@@ -610,7 +610,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
       : "Manage products listed by farmers in your cooperative and prepare supply for orders.";
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <div className="mb-6 flex items-center gap-3">
           <PackageSearch className="h-6 w-6 text-primary" />
@@ -749,7 +749,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
           <Badge variant="outline">
             {mode === "admin" ? "All cooperatives" : "My cooperative"}
           </Badge>
-          
+
           <div className="ml-auto flex items-center gap-2">
             {mode === "admin" && (
               <Button
@@ -875,7 +875,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
                             onClick={() => openDetail(product)}
                           >
                             <TableCell className="py-4">
-                              <div className="h-14 w-14 overflow-hidden rounded-xl border border-border/70 bg-background">
+                              <div className="h-14 w-14 overflow-hidden rounded-xl border border-border/70 bg-white dark:bg-muted">
                                 <ProductImage
                                   product={product}
                                   broken={Boolean(
@@ -992,7 +992,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
 
           {detailProduct && (
             <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-              <div className="h-56 overflow-hidden rounded-2xl border border-border/70 bg-muted">
+              <div className="h-56 overflow-hidden rounded-2xl border border-border/70 bg-white dark:bg-muted">
                 <ProductImage
                   product={detailProduct}
                   broken={Boolean(brokenImages[detailProduct.productID])}
@@ -1151,7 +1151,7 @@ export function ProductInventoryPage({ mode }: ProductInventoryPageProps) {
 
           <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
             <div className="space-y-3">
-              <div className="h-56 overflow-hidden rounded-2xl border border-border/70 bg-muted">
+              <div className="h-56 overflow-hidden rounded-2xl border border-border/70 bg-white dark:bg-muted">
                 {selectedImagePreview || formData.imagePath ? (
                   <img
                     src={
