@@ -5,12 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { type DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
-import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { FileText, Printer, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 
 const LEDGER_API = "http://localhost:8800/api/ledger";
@@ -65,7 +63,10 @@ export function FarmerBalanceSheet() {
     async function fetchLedger() {
       try {
         setLoading(true);
-        let url = `${LEDGER_API}/farmers/${farmerId}`;
+        const isSelf = !farmerId;
+        const url = isSelf
+          ? `${LEDGER_API}/farmers/me`
+          : `${LEDGER_API}/farmers/${farmerId}`;
         const params: any = {};
         if (coopIdParam) params.coopId = coopIdParam;
         
@@ -178,17 +179,15 @@ export function FarmerBalanceSheet() {
         <div className="bg-white rounded-xl p-3 shadow-sm border flex flex-col gap-3 mb-4">
           {/* ── Filters ─────────────────────────────────────────────────────────── */}
           <div className="flex gap-3">
-            {/* Select Farmer (Readonly for now since we are on a specific farmer's page) */}
+            {/* Select Farmer (Readonly — shows current farmer) */}
             <div className="flex-1 flex flex-col gap-1.5">
               <Label htmlFor="farmer-select" className="text-xs text-gray-500">Farmer Account</Label>
-              <Select disabled value={farmerId}>
-                <SelectTrigger id="farmer-select" className="h-9">
-                  <SelectValue placeholder="Choose a Farmer" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={farmerId || ""}>{farmerInfo.name}</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="farmer-select"
+                readOnly
+                value={farmerInfo?.name || "Loading…"}
+                className="h-9 bg-muted cursor-default"
+              />
             </div>
 
             {/* Select Period */}

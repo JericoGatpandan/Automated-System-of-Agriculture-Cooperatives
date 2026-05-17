@@ -22,6 +22,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -179,6 +180,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
       let url = `${LEDGER}/farmers/me`;
       const params: Record<string, string> = {};
       if (!self) {
+        if (!farmerId) return;
         url = `${LEDGER}/farmers/${farmerId}`;
         if (variant === "admin" && coopIdParam) {
           params.coopId = coopIdParam;
@@ -749,6 +751,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add loan</DialogTitle>
+            <DialogDescription>Record a new loan for this farmer account.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div>
@@ -812,6 +815,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Record repayment</DialogTitle>
+            <DialogDescription>Enter the repayment amount and date.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div>
@@ -854,6 +858,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Statement period</DialogTitle>
+            <DialogDescription>Select a date range to generate the farmer statement.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-4">
             <div className="flex flex-col gap-2">
