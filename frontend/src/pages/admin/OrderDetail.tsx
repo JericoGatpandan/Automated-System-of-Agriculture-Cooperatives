@@ -15,25 +15,24 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Progress } from "../../components/ui/progress";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "../../components/ui/select";
-import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../components/ui/table";
+import { ScrollArea } from "../../components/ui/scroll-area";
 
 import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
+  Check,
   ChevronLeft,
   Loader2, Package,
   Pencil,
   Plus, ShoppingCart,
   Trash2,
+  X,
 } from "lucide-react";
 
 const API = `${API_URL}/api/orders`;
 const ASSIGN_API = `${API_URL}/api/assignments`;
-const COOP_API = `${API_URL}/api/cooperatives`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",
@@ -50,7 +49,13 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-interface Coop { primaryCoopID: number; coopName: string; }
+interface AvailableCoop {
+  primaryCoopID: number;
+  coopName: string;
+  hasCrop: boolean;
+  totalAvailableQuantity: number;
+  farmerCount: number;
+}
 
 export function OrderDetail() {
   const { id } = useParams();
@@ -61,10 +66,12 @@ export function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Assign coop dialog
+  // Assign coop dialog — multi-step
   const [assignOpen, setAssignOpen] = useState(false);
-  const [coops, setCoops] = useState<Coop[]>([]);
-  const [selectedCoop, setSelectedCoop] = useState("");
+  const [assignStep, setAssignStep] = useState<1 | 2>(1);
+  const [availableCoops, setAvailableCoops] = useState<AvailableCoop[]>([]);
+  const [coopsLoading, setCoopsLoading] = useState(false);
+  const [selectedCoop, setSelectedCoop] = useState<AvailableCoop | null>(null);
   const [assignQty, setAssignQty] = useState("");
   const [assignLoading, setAssignLoading] = useState(false);
   const [assignError, setAssignError] = useState("");
@@ -98,25 +105,42 @@ export function OrderDetail() {
   const remaining = (order?.requestedQuantity || 0) - totalAssigned;
   const pct = order?.requestedQuantity ? Math.min(100, Math.round((totalAssigned / order.requestedQuantity) * 100)) : 0;
 
-  // Assign cooperative
+  // Open assign dialog — fetch available coops with inventory context
   const openAssignDialog = async () => {
     setAssignError("");
-    setSelectedCoop("");
+    setSelectedCoop(null);
     setAssignQty("");
-    try {
-      const res = await axios.get(COOP_API);
-      setCoops(res.data.cooperatives || []);
-    } catch { /* ignore */ }
+    setAssignStep(1);
+    setCoopsLoading(true);
     setAssignOpen(true);
+    try {
+      const res = await axios.get(`${API}/${id}/available-coops`);
+      setAvailableCoops(res.data.cooperatives || []);
+    } catch {
+      setAvailableCoops([]);
+    } finally {
+      setCoopsLoading(false);
+    }
+  };
+
+  // Step 1 → Step 2: select a cooperative
+  const selectCoop = (coop: AvailableCoop) => {
+    setSelectedCoop(coop);
+    // Pre-fill quantity: min of remaining and available
+    const prefill = Math.min(remaining, coop.totalAvailableQuantity || remaining);
+    setAssignQty(String(prefill > 0 ? prefill : ""));
+    setAssignError("");
+    setAssignStep(2);
   };
 
   const handleAssign = async () => {
+    if (!selectedCoop) return;
     setAssignError("");
     setAssignLoading(true);
     try {
       await axios.post(ASSIGN_API, {
         orderID: parseInt(id!),
-        primaryCoopID: parseInt(selectedCoop),
+        primaryCoopID: selectedCoop.primaryCoopID,
         quantityRequired: parseInt(assignQty),
       });
       setAssignOpen(false);
@@ -153,6 +177,8 @@ export function OrderDetail() {
       setRemoveLoading(false);
     }
   };
+
+  const qtyExceedsAvailable = selectedCoop && parseInt(assignQty) > selectedCoop.totalAvailableQuantity;
 
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
@@ -292,37 +318,143 @@ export function OrderDetail() {
         </Card>
       </div>
 
-      {/* Assign Cooperative Dialog */}
-      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-        <DialogContent className="sm:max-w-md">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* Multi-Step Assign Cooperative Dialog                       */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <Dialog open={assignOpen} onOpenChange={(open) => { if (!open) setAssignOpen(false); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Assign Cooperative</DialogTitle>
-            <DialogDescription>Select a cooperative and specify the quantity to assign.</DialogDescription>
+            <DialogTitle>
+              {assignStep === 1 ? "Select Cooperative" : "Set Quantity & Confirm"}
+            </DialogTitle>
+            <DialogDescription>
+              {assignStep === 1
+                ? `Select a cooperative to fulfill ${order?.CropType?.cropName || "this crop"} — showing inventory availability.`
+                : `Confirm assignment to ${selectedCoop?.coopName}.`
+              }
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label>Cooperative</Label>
-              <Select value={selectedCoop} onValueChange={setSelectedCoop}>
-                <SelectTrigger><SelectValue placeholder="Select cooperative" /></SelectTrigger>
-                <SelectContent>
-                  {coops.map((c) => (
-                    <SelectItem key={c.primaryCoopID} value={String(c.primaryCoopID)}>{c.coopName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+          {/* Step 1: Cooperative list with inventory context */}
+          {assignStep === 1 && (
+            <div className="flex-1 min-h-0">
+              {coopsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading cooperatives…</span>
+                </div>
+              ) : availableCoops.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-sm text-muted-foreground">No cooperatives found</p>
+                </div>
+              ) : (
+                <ScrollArea className="max-h-[50vh]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted hover:bg-muted">
+                        <TableHead className="font-semibold text-muted-foreground">Cooperative</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-center">Crop Match</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-right">Available Qty</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-right">Active Farmers</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {availableCoops.map((coop) => (
+                        <TableRow
+                          key={coop.primaryCoopID}
+                          className={`cursor-pointer transition-colors ${!coop.hasCrop ? "opacity-50" : "hover:bg-accent/50"}`}
+                          onClick={() => selectCoop(coop)}
+                        >
+                          <TableCell className="py-3 font-semibold">{coop.coopName}</TableCell>
+                          <TableCell className="py-3 text-center">
+                            {coop.hasCrop ? (
+                              <span className="inline-flex items-center gap-1 text-green-600">
+                                <Check className="h-4 w-4" /> Yes
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                <X className="h-4 w-4" /> No
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3 text-right font-mono">
+                            {coop.totalAvailableQuantity.toLocaleString()} kg
+                          </TableCell>
+                          <TableCell className="py-3 text-right font-mono">
+                            {coop.farmerCount}
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); selectCoop(coop); }}>
+                              Select
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="assignQty">Quantity Required (kg)</Label>
-              <Input id="assignQty" type="number" min="1" value={assignQty}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAssignQty(e.target.value)} />
+          )}
+
+          {/* Step 2: Quantity & Confirm */}
+          {assignStep === 2 && selectedCoop && (
+            <div className="grid gap-4">
+              {/* Selected coop summary */}
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cooperative</p>
+                    <p className="font-semibold">{selectedCoop.coopName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Available Stock</p>
+                    <p className="font-mono font-medium">{selectedCoop.totalAvailableQuantity.toLocaleString()} kg</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Active Farmers</p>
+                    <p className="font-mono font-medium">{selectedCoop.farmerCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Remaining Unassigned</p>
+                    <p className="font-mono font-medium">{remaining.toLocaleString()} kg</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="assignQty">Quantity Required (kg)</Label>
+                <Input id="assignQty" type="number" min="1" value={assignQty}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAssignQty(e.target.value)} />
+              </div>
+
+              {/* Warning if quantity exceeds available */}
+              {qtyExceedsAvailable && (
+                <div className="flex items-center gap-2 rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
+                  <p className="text-sm text-yellow-700">
+                    Quantity exceeds the cooperative's available stock ({selectedCoop.totalAvailableQuantity.toLocaleString()} kg).
+                  </p>
+                </div>
+              )}
+
+              {assignError && <p className="text-sm text-destructive">{assignError}</p>}
             </div>
-            {assignError && <p className="text-sm text-destructive">{assignError}</p>}
-          </div>
+          )}
+
           <DialogFooter>
+            {assignStep === 2 && (
+              <Button variant="outline" onClick={() => setAssignStep(1)} disabled={assignLoading} className="mr-auto">
+                Back
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setAssignOpen(false)} disabled={assignLoading}>Cancel</Button>
-            <Button onClick={handleAssign} disabled={assignLoading || !selectedCoop || !assignQty}>
-              {assignLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Assigning…</> : "Assign"}
-            </Button>
+            {assignStep === 2 && (
+              <Button onClick={handleAssign} disabled={assignLoading || !assignQty || parseInt(assignQty) <= 0}>
+                {assignLoading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Assigning…</> : "Assign"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

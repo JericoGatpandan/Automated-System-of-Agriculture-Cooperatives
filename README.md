@@ -117,7 +117,7 @@ docker compose down -v
 | `/api/deliveries`    | Delivery records and atomic delivery completion      |
 | `/api/ledger`        | Federation/coop summaries, farmer ledgers, loans, statements, monthly trends |
 | `/api/dashboard`     | Dashboard statistics and aggregated views            |
-| `/api/notifications` | In-app notification feed                             |
+| `/api/notifications` | In-app notification feed (trigger-driven: assignments, deliveries, partnership requests) |
 | `/api/requests`      | Partnership and registration request management      |
 
 ---
@@ -264,10 +264,13 @@ The application runs at `http://localhost:5173`.
 - Role-based authentication and protected route system
 - Two-tier organizational structure (Federation and Cooperative levels)
 - Full order lifecycle: intake, cooperative assignment, farmer fulfillment, delivery, and accounting
+- Inventory-aware assignment: cooperative and farmer selection dialogs show crop match status and available quantities
 - Atomic delivery completion via MySQL stored procedures with proportional sales generation
+- In-app notifications via MySQL triggers (partnership requests, coop assignments, delivery confirmations)
 - FarmLedger with interactive charts (Recharts): monthly trends, revenue distribution, cooperative comparisons
 - Printable farmer balance sheet with print-optimized CSS
 - Product inventory with image upload and automatic compression
+- Crop type management with referential integrity checks
 - Profile picture upload with automatic 256x256 resizing
 - Dark mode support
 - Responsive sidebar navigation with collapsible layout

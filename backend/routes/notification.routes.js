@@ -21,14 +21,28 @@ router.get("/", authenticate, async (req, res) => {
       isRead: false
     };
 
-    // If Officer, they also need to match their specific primaryCoopID
+    // If Officer, resolve their primaryCoopID via PrimaryCooperatives table
     if (role === "Officer") {
-      // Fetch the user's primaryCoopID first
-      const user = await db.User.findByPk(req.user.userID);
-      if (user && user.primaryCoopID) {
-        whereClause.recipientID = user.primaryCoopID;
+      const coop = await db.PrimaryCooperative.findOne({
+        where: { userID: req.user.userID, isDeleted: false },
+        attributes: ["primaryCoopID"],
+      });
+      if (coop) {
+        whereClause.recipientID = coop.primaryCoopID;
       } else {
-        // If they don't have a coop ID, they have no notifications
+        return res.json([]);
+      }
+    }
+
+    // If Farmer, match recipientID to their farmerID
+    if (role === "Farmer") {
+      const farmer = await db.Farmer.findOne({
+        where: { userID: req.user.userID, isDeleted: false },
+        attributes: ["farmerID"],
+      });
+      if (farmer) {
+        whereClause.recipientID = farmer.farmerID;
+      } else {
         return res.json([]);
       }
     }

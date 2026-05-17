@@ -29,6 +29,96 @@ router.get(
 );
 
 // ─────────────────────────────────────────────────────────
+// GET /api/orders/:id/available-coops  — Admin: cooperatives with inventory context
+// ─────────────────────────────────────────────────────────
+router.get(
+  "/:id/available-coops",
+  authenticate,
+  authorize("Admin"),
+  async (req, res) => {
+    try {
+      const order = await db.BuyerOrder.findByPk(req.params.id, {
+        include: [{ model: db.CropType, attributes: ["cropTypeID", "cropName", "category"] }],
+      });
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      const cropTypeID = order.cropTypeID;
+
+      // Get all active cooperatives
+      const cooperatives = await db.PrimaryCooperative.findAll({
+        where: { isDeleted: false },
+        attributes: ["primaryCoopID", "coopName"],
+        order: [["coopName", "ASC"]],
+      });
+
+      // For each cooperative, aggregate product availability for the matching cropTypeID
+      const result = await Promise.all(
+        cooperatives.map(async (coop) => {
+          // Find farmers in this coop
+          const farmerCoops = await db.FarmerCooperative.findAll({
+            where: { primaryCoopID: coop.primaryCoopID, status: "active" },
+            attributes: ["farmerID"],
+            include: [
+              {
+                model: db.Farmer,
+                attributes: ["farmerID"],
+                where: { isDeleted: false },
+                required: true,
+                include: [
+                  {
+                    model: db.Product,
+                    where: { cropTypeID, isDeleted: false },
+                    attributes: ["availableQuantity"],
+                    required: false,
+                  },
+                ],
+              },
+            ],
+          });
+
+          let totalAvailableQuantity = 0;
+          let farmerCount = 0;
+
+          for (const fc of farmerCoops) {
+            const products = fc.Farmer?.Products || [];
+            if (products.length > 0) {
+              farmerCount++;
+              totalAvailableQuantity += products.reduce(
+                (sum, p) => sum + (parseFloat(p.availableQuantity) || 0),
+                0
+              );
+            }
+          }
+
+          return {
+            primaryCoopID: coop.primaryCoopID,
+            coopName: coop.coopName,
+            hasCrop: farmerCount > 0,
+            totalAvailableQuantity,
+            farmerCount,
+          };
+        })
+      );
+
+      // Sort: cooperatives with matching crop first (by available quantity desc), then without
+      result.sort((a, b) => {
+        if (a.hasCrop && !b.hasCrop) return -1;
+        if (!a.hasCrop && b.hasCrop) return 1;
+        return b.totalAvailableQuantity - a.totalAvailableQuantity;
+      });
+
+      res.json({
+        cropType: order.CropType,
+        cooperatives: result,
+      });
+    } catch (err) {
+      console.error("Available coops error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────
 // GET /api/orders/:id  — Admin: order detail with assignments
 // ─────────────────────────────────────────────────────────
 router.get(
