@@ -363,7 +363,7 @@ async function buildCoopLedgerResponse(req, coopId) {
     whereAccount.status = status;
   }
 
-  const [summaryRows] = await db.sequelize.query(
+  const summaryRows = await db.sequelize.query(
     "CALL sp_build_coop_ledger_summary(:coopId, :start, :end)",
     {
       replacements: {

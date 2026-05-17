@@ -197,96 +197,105 @@ export function AdminFarmerRegistry() {
               ) : (
                 <div className="flex min-h-0 flex-1 flex-col">
                   <ScrollArea className="min-h-0 flex-1">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="sticky top-0 z-10 bg-muted hover:bg-muted">
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Farmer Name
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Farm
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Location
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Cooperative
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Crops
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground">
-                            Joined
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground text-center">
-                            Status
-                          </TableHead>
-                          <TableHead className="font-semibold text-muted-foreground text-right">
-                            View
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paginated.map((f) => {
-                          const membership = f.FarmerCooperatives?.[0];
-                          const crops =
-                            f.Products?.map((p) => p.CropType?.cropName)
-                              .filter(Boolean)
-                              .join(", ") || "—";
+                    <div className="min-w-[900px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="sticky top-0 z-10 bg-muted hover:bg-muted">
+                            <TableHead className="font-semibold text-muted-foreground w-[18%]">
+                              Farmer Name
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground w-[12%]">
+                              Farm
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground w-[16%]">
+                              Location
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground w-[16%]">
+                              Cooperative
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground w-[12%]">
+                              Crops
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground w-[10%]">
+                              Joined
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground text-center w-[8%]">
+                              Status
+                            </TableHead>
+                            <TableHead className="font-semibold text-muted-foreground text-right w-[8%] pr-4">
+                              View
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginated.map((f) => {
+                            const membership = f.FarmerCooperatives?.[0];
+                            const crops =
+                              f.Products?.map((p) => p.CropType?.cropName)
+                                .filter(Boolean)
+                                .join(", ") || "—";
 
-                          return (
-                            <TableRow key={f.farmerID} onClick={() =>
-                                    navigate(`/admin/farmers/${f.farmerID}`)
-                                  }>
-                              <TableCell className="py-4 font-semibold">
-                                {f.lastName}, {f.firstName}
-                                {f.middleName ? ` ${f.middleName}` : ""}
-                              </TableCell>
-                              <TableCell className="py-4">
-                                {f.farmName || "—"}
-                              </TableCell>
-                              <TableCell className="py-4">
-                                {f.barangay}, {f.municipality}
-                              </TableCell>
-                              <TableCell className="py-4">
-                                {membership?.PrimaryCooperative?.coopName ||
-                                  "—"}
-                              </TableCell>
-                              <TableCell className="py-4">{crops}</TableCell>
-                              <TableCell className="py-4">
-                                {membership
-                                  ? fmtDate(membership.joinedDate)
-                                  : "—"}
-                              </TableCell>
-                              <TableCell className="py-4 text-center">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    membership?.status === "active"
-                                      ? "border-green-500/50 text-green-700 bg-green-50"
-                                      : "border-gray-300 text-gray-500 bg-gray-50"
-                                  }
-                                >
-                                  {membership?.status || "unknown"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="py-4 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    navigate(`/admin/farmers/${f.farmerID}`)
-                                  }
-                                  id={`view-farmer-${f.farmerID}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
+                            return (
+                              <TableRow
+                                key={f.farmerID}
+                                className="cursor-pointer"
+                                onClick={() =>
+                                  navigate(`/admin/farmers/${f.farmerID}`)
+                                }
+                              >
+                                <TableCell className="py-3 font-semibold">
+                                  {f.lastName}, {f.firstName}
+                                  {f.middleName ? ` ${f.middleName}` : ""}
+                                </TableCell>
+                                <TableCell className="py-3 truncate max-w-[120px]">
+                                  {f.farmName || "—"}
+                                </TableCell>
+                                <TableCell className="py-3 truncate max-w-[160px]">
+                                  {f.barangay}, {f.municipality}
+                                </TableCell>
+                                <TableCell className="py-3 truncate max-w-[160px]">
+                                  {membership?.PrimaryCooperative?.coopName ||
+                                    "—"}
+                                </TableCell>
+                                <TableCell className="py-3 truncate max-w-[120px]">
+                                  {crops}
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  {membership
+                                    ? fmtDate(membership.joinedDate)
+                                    : "—"}
+                                </TableCell>
+                                <TableCell className="py-3 text-center">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      membership?.status === "active"
+                                        ? "border-green-500/50 text-green-700 bg-green-50"
+                                        : "border-gray-300 text-gray-500 bg-gray-50"
+                                    }
+                                  >
+                                    {membership?.status || "unknown"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-3 text-right pr-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/admin/farmers/${f.farmerID}`);
+                                    }}
+                                    id={`view-farmer-${f.farmerID}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </ScrollArea>
                   <TablePaginationFooter
                     currentPage={currentPage}
