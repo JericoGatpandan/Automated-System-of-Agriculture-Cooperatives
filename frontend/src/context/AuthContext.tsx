@@ -8,6 +8,7 @@ interface User {
   id: number;
   email: string;
   role: Role;
+  profilePicture?: string | null;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateProfilePicture: (url: string | null) => void;
   isLoading: boolean;
 }
 
@@ -65,8 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     delete axios.defaults.headers.common["Authorization"];
   };
 
+  const updateProfilePicture = (url: string | null) => {
+    setUser((prev) => (prev ? { ...prev, profilePicture: url } : prev));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, updateProfilePicture, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

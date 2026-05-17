@@ -59,6 +59,7 @@ router.post("/login", async (req, res) => {
         id: user.userID,
         email: user.email,
         role,
+        profilePicture: user.profilePicture || null,
       },
     });
   } catch (err) {
@@ -78,6 +79,7 @@ router.get("/me", authenticate, async (req, res) => {
         id: req.user.userID,
         email: req.user.email,
         role: req.user.role,
+        profilePicture: req.user.profilePicture || null,
       },
     });
   } catch (err) {

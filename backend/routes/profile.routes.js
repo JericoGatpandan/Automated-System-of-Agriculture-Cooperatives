@@ -1,10 +1,45 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import multer from "multer";
+import sharp from "sharp";
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import { authenticate } from "../middleware/auth.middleware.js";
 
 const require = createRequire(import.meta.url);
 const db = require("../models/index.js");
+
+// ── Avatar upload config ──
+const avatarDir = path.resolve(process.cwd(), "uploads", "avatars");
+const publicAvatarPrefix = "/uploads/avatars";
+
+const avatarStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    fs.mkdirSync(avatarDir, { recursive: true });
+    cb(null, avatarDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${Date.now()}-${randomUUID()}${ext}`);
+  },
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      cb(new Error("Only image files are allowed"));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+const AVATAR_SIZE = 256;
+const AVATAR_QUALITY = 80;
 
 const router = Router();
 
@@ -91,6 +126,7 @@ router.get("/", authenticate, async (req, res) => {
         id: user.userID,
         email: user.email,
         role,
+        profilePicture: user.profilePicture || null,
         createdAt: user.createdAt,
         organization,
       },
@@ -257,6 +293,95 @@ router.delete("/", authenticate, async (req, res) => {
   } catch (err) {
     console.error("Account deactivation error:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+/**
+ * PUT /api/profile/avatar
+ * Upload or replace profile picture. Compresses to 256x256 PNG.
+ */
+router.put(
+  "/avatar",
+  authenticate,
+  avatarUpload.single("avatar"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      // Compress and resize to a consistent square PNG
+      const outputName = `avatar-${req.user.userID}-${Date.now()}.png`;
+      const outputPath = path.join(avatarDir, outputName);
+
+      await sharp(req.file.path)
+        .resize(AVATAR_SIZE, AVATAR_SIZE, { fit: "cover", position: "center" })
+        .png({ quality: AVATAR_QUALITY })
+        .toFile(outputPath);
+
+      // Remove the raw upload (different file)
+      if (req.file.path !== outputPath) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (_) {}
+      }
+
+      // Remove old avatar if it exists
+      const user = await db.User.findByPk(req.user.userID);
+      if (user?.profilePicture) {
+        const oldPath = path.resolve(
+          process.cwd(),
+          user.profilePicture.replace(/^\//, ""),
+        );
+        try {
+          fs.unlinkSync(oldPath);
+        } catch (_) {}
+      }
+
+      const publicPath = `${publicAvatarPrefix}/${outputName}`;
+
+      await db.User.update(
+        { profilePicture: publicPath },
+        { where: { userID: req.user.userID } },
+      );
+
+      res.json({
+        message: "Profile picture updated",
+        profilePicture: publicPath,
+      });
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      res.status(500).json({ message: "Failed to upload profile picture" });
+    }
+  },
+);
+
+/**
+ * DELETE /api/profile/avatar
+ * Remove the current profile picture, reverting to default.
+ */
+router.delete("/avatar", authenticate, async (req, res) => {
+  try {
+    const user = await db.User.findByPk(req.user.userID);
+    if (user?.profilePicture) {
+      const oldPath = path.resolve(
+        process.cwd(),
+        user.profilePicture.replace(/^\//, ""),
+      );
+      try {
+        fs.unlinkSync(oldPath);
+      } catch (_) {}
+    }
+
+    await db.User.update(
+      { profilePicture: null },
+      { where: { userID: req.user.userID } },
+    );
+
+    res.json({ message: "Profile picture removed" });
+  } catch (err) {
+    console.error("Avatar delete error:", err);
+    res.status(500).json({ message: "Failed to remove profile picture" });
   }
 });
 

@@ -212,7 +212,19 @@ export function AppHeader({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 px-2 hover:bg-accent/50">
-              <UserCircle className="h-6 w-6 text-muted-foreground" />
+              {user?.profilePicture ? (
+                <img
+                  src={`http://localhost:8800${user.profilePicture}`}
+                  alt="Profile"
+                  className="h-7 w-7 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <img
+                  src="/empty-profile.svg"
+                  alt="Default profile"
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              )}
               <div className="hidden md:flex flex-col items-start text-left">
                 <span className="text-sm font-medium leading-none">
                   {user?.email?.split("@")[0] || "User"}
