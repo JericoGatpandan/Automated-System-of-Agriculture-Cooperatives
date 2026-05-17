@@ -205,6 +205,22 @@ Or start a MySQL container:
 docker compose up db -d
 ```
 
+Example `.env.development.local` (provided in the repo as `backend/.env.development.local.example`):
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=password
+DB_DATABASE=asac_db
+PORT=8800
+
+NODE_ENV=development
+SERVER_URL=http://localhost:8080
+
+JWT_SECRET=asac_dev_jwt_secret_2024
+JWT_EXPIRES_IN="1d"
+```
+
 ### 3. Run migrations and seeders
 
 ```bash
