@@ -272,7 +272,7 @@ export function CooperativeRegistry() {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       {/* ── Content ── */}
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {/* Page Title */}
