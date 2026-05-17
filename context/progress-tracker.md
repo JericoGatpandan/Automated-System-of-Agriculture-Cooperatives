@@ -142,19 +142,30 @@ Update this file after every meaningful implementation change.
   - Added new seeders for `PartnershipRequests` and `Notifications`.
   - Total seed records now cover all 19 primary cooperatives and diverse transaction statuses.
 
+- **Implemented Inventory-Aware Assignment & Notification Fix**:
+  - Backend: Added `GET /api/orders/:id/available-coops` endpoint — returns all cooperatives with crop match status, aggregate `Product.availableQuantity`, and active farmer count for the order's `cropTypeID`. Sorted by match/quantity descending.
+  - Backend: Added `GET /api/assignments/:id/available-farmers` endpoint — returns all farmers in the officer's cooperative with crop match status, individual available quantity, quality grade, and product ID. Officer-scoped via `PrimaryCooperatives` table.
+  - Backend: Fixed `GET /api/notifications` Officer lookup — resolved `recipientID` via `PrimaryCooperatives.findOne({ where: { userID } })` instead of the non-existent `User.primaryCoopID` column. Added Farmer notification support via `Farmer.findOne({ where: { userID } })`.
+  - Backend: Added migration `20260517160000-add-farmer-fulfillment-trigger.js` — creates `after_farmer_fulfillment_insert` MySQL trigger that inserts a Farmer-targeted notification row on `FarmerFulfillments` INSERT.
+  - Frontend: Redesigned "Assign Cooperative" dialog in `OrderDetail.tsx` as a multi-step dialog — Step 1 shows a sortable table of cooperatives with ✅/❌ crop match, available qty, and farmer count; non-matching coops are visually muted. Step 2 shows selected coop summary, pre-filled quantity input (capped at available), and a warning badge if quantity exceeds stock.
+  - Frontend: Redesigned "Assign Farmer" dialog in `AssignmentDetail.tsx` as a multi-step dialog — Step 1 shows a table of farmers with crop match, available qty, and quality grade; non-matching farmers are muted. Step 2 shows selected farmer summary, quantity input, notes textarea, and overstock warning badge.
+  - See `context/feature-specs/22-assignment-inventory-visibility.md` for details.
+
 ## In Progress
 
-- None.
+- No active implementation units.
 
 ## Next Up
 
 - Continue semester expansion beyond the three core modules as prioritized with stakeholders (e.g. deeper polish on landing content or registration UX).
+- Officer-side order visibility: Show assigned orders on the coop dashboard with production planning context.
 
 ## Open Questions
 
 - Confirm exact external commission split rates: federation vs cooperative (Spec says TBC).
 - Confirm cooperative share split into capital contribution vs capital retention rates (Spec says TBC).
 - Confirm if farmers will have direct login or view-only ledger access (Spec says Farmer is view-only).
+- Decide whether to keep MySQL triggers for notifications or move to application-level notification creation for better testability and flexibility.
 
 ## Architecture Decisions
 

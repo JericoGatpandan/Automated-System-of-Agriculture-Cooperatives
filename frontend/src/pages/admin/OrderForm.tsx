@@ -26,7 +26,7 @@ import { ChevronLeft, Loader2, ShoppingCart } from "lucide-react";
 import { API_URL } from "../../lib/api";
 
 const API = `${API_URL}/api/orders`;
-const CROP_API = `${API_URL}/api/farmers/crop-types`;
+const CROP_API = `${API_URL}/api/products/crop-types`;
 
 interface CropType {
   cropTypeID: number;
@@ -58,8 +58,13 @@ export function OrderForm() {
   useEffect(() => {
     axios
       .get(CROP_API)
-      .then((r) => setCropTypes(r.data.cropTypes))
-      .catch(() => {});
+      .then((r) => {
+        const data = r.data.cropTypes ?? r.data ?? [];
+        setCropTypes(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Failed to load crop types:", err);
+      });
   }, []);
 
   useEffect(() => {

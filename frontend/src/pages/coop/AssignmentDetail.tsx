@@ -51,10 +51,11 @@ import {
   Package,
   ClipboardList,
   Loader2,
+  Check,
+  X,
 } from "lucide-react";
 
 const API = `${API_URL}/api/assignments`;
-const FARMER_API = `${API_URL}/api/farmers/my-coop`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",
@@ -74,6 +75,17 @@ function fmtDate(d: string) {
   });
 }
 
+interface AvailableFarmer {
+  farmerID: number;
+  firstName: string;
+  lastName: string;
+  farmName: string;
+  hasCrop: boolean;
+  availableQuantity: number;
+  qualityGrade: string | null;
+  productID: number | null;
+}
+
 export function AssignmentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -85,10 +97,12 @@ export function AssignmentDetail() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Assign farmer dialog
+  // Assign farmer dialog — multi-step
   const [assignOpen, setAssignOpen] = useState(false);
-  const [farmers, setFarmers] = useState<any[]>([]);
-  const [selectedFarmer, setSelectedFarmer] = useState("");
+  const [assignStep, setAssignStep] = useState<1 | 2>(1);
+  const [availableFarmers, setAvailableFarmers] = useState<AvailableFarmer[]>([]);
+  const [farmersLoading, setFarmersLoading] = useState(false);
+  const [selectedFarmer, setSelectedFarmer] = useState<AvailableFarmer | null>(null);
   const [commitQty, setCommitQty] = useState("");
   const [commitNotes, setCommitNotes] = useState("");
   const [assignLoading, setAssignLoading] = useState(false);
@@ -148,27 +162,43 @@ export function AssignmentDetail() {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
-  // Open assign farmer dialog
+  // Open assign farmer dialog — fetch available farmers with inventory context
   const openAssignFarmer = async () => {
     setAssignError("");
-    setSelectedFarmer("");
+    setSelectedFarmer(null);
     setCommitQty("");
     setCommitNotes("");
-    try {
-      const res = await axios.get(FARMER_API);
-      setFarmers(res.data.farmers || []);
-    } catch {
-      /* ignore */
-    }
+    setAssignStep(1);
+    setFarmersLoading(true);
     setAssignOpen(true);
+    try {
+      const res = await axios.get(`${API}/${id}/available-farmers`);
+      setAvailableFarmers(res.data.farmers || []);
+    } catch {
+      setAvailableFarmers([]);
+    } finally {
+      setFarmersLoading(false);
+    }
+  };
+
+  // Step 1 → Step 2: select a farmer
+  const selectFarmer = (farmer: AvailableFarmer) => {
+    setSelectedFarmer(farmer);
+    // Pre-fill quantity: min of remaining and farmer's available
+    const prefill = Math.min(remaining, farmer.availableQuantity || remaining);
+    setCommitQty(String(prefill > 0 ? prefill : ""));
+    setCommitNotes("");
+    setAssignError("");
+    setAssignStep(2);
   };
 
   const handleAssignFarmer = async () => {
+    if (!selectedFarmer) return;
     setAssignError("");
     setAssignLoading(true);
     try {
       await axios.post(`${API}/${id}/fulfillments`, {
-        farmerID: parseInt(selectedFarmer),
+        farmerID: selectedFarmer.farmerID,
         quantityCommitted: parseInt(commitQty),
         notes: commitNotes || null,
       });
@@ -213,6 +243,8 @@ export function AssignmentDetail() {
       setRemoveLoading(false);
     }
   };
+
+  const qtyExceedsFarmerAvailable = selectedFarmer && parseInt(commitQty) > selectedFarmer.availableQuantity;
 
   if (loading) {
     return (
@@ -479,61 +511,175 @@ export function AssignmentDetail() {
         </Card>
       </div>
 
-      {/* Assign Farmer Dialog */}
-      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-        <DialogContent className="sm:max-w-md">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* Multi-Step Assign Farmer Dialog                            */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <Dialog open={assignOpen} onOpenChange={(open) => { if (!open) setAssignOpen(false); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Assign Farmer</DialogTitle>
+            <DialogTitle>
+              {assignStep === 1 ? "Select Farmer" : "Set Quantity & Confirm"}
+            </DialogTitle>
             <DialogDescription>
-              Select a farmer from your cooperative to fulfill this assignment.
+              {assignStep === 1
+                ? `Select a farmer to fulfill ${order?.CropType?.cropName || "this crop"} — showing inventory availability.`
+                : `Confirm assignment to ${selectedFarmer?.lastName}, ${selectedFarmer?.firstName}.`
+              }
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label>Farmer</Label>
-              <Select value={selectedFarmer} onValueChange={setSelectedFarmer}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select farmer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {farmers.map((f: any) => (
-                    <SelectItem key={f.farmerID} value={String(f.farmerID)}>
-                      {f.lastName}, {f.firstName} —{" "}
-                      {f.farmName || f.barangay}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+          {/* Step 1: Farmer list with inventory context */}
+          {assignStep === 1 && (
+            <div className="flex-1 min-h-0">
+              {farmersLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading farmers…</span>
+                </div>
+              ) : availableFarmers.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-sm text-muted-foreground">No farmers found in your cooperative</p>
+                </div>
+              ) : (
+                <ScrollArea className="max-h-[50vh]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted hover:bg-muted">
+                        <TableHead className="font-semibold text-muted-foreground">Farmer</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground">Farm</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-center">Crop Match</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-right">Available Qty</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-center">Quality</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {availableFarmers.map((farmer) => (
+                        <TableRow
+                          key={farmer.farmerID}
+                          className={`cursor-pointer transition-colors ${!farmer.hasCrop ? "opacity-50" : "hover:bg-accent/50"}`}
+                          onClick={() => selectFarmer(farmer)}
+                        >
+                          <TableCell className="py-3 font-semibold">
+                            {farmer.lastName}, {farmer.firstName}
+                          </TableCell>
+                          <TableCell className="py-3">
+                            {farmer.farmName || "—"}
+                          </TableCell>
+                          <TableCell className="py-3 text-center">
+                            {farmer.hasCrop ? (
+                              <span className="inline-flex items-center gap-1 text-green-600">
+                                <Check className="h-4 w-4" /> Yes
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                <X className="h-4 w-4" /> No
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3 text-right font-mono">
+                            {farmer.availableQuantity.toLocaleString()} kg
+                          </TableCell>
+                          <TableCell className="py-3 text-center">
+                            {farmer.qualityGrade ? (
+                              <Badge variant="outline">{farmer.qualityGrade}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-3 text-right">
+                            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); selectFarmer(farmer); }}>
+                              Select
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="commitQty">Quantity (kg)</Label>
-              <Input
-                id="commitQty"
-                type="number"
-                min="1"
-                value={commitQty}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setCommitQty(e.target.value)
-                }
-              />
+          )}
+
+          {/* Step 2: Quantity & Confirm */}
+          {assignStep === 2 && selectedFarmer && (
+            <div className="grid gap-4">
+              {/* Selected farmer summary */}
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Farmer</p>
+                    <p className="font-semibold">{selectedFarmer.lastName}, {selectedFarmer.firstName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Farm</p>
+                    <p className="font-medium">{selectedFarmer.farmName || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Available Stock</p>
+                    <p className="font-mono font-medium">{selectedFarmer.availableQuantity.toLocaleString()} kg</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Remaining Uncommitted</p>
+                    <p className="font-mono font-medium">{remaining.toLocaleString()} kg</p>
+                  </div>
+                  {selectedFarmer.qualityGrade && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Quality Grade</p>
+                      <Badge variant="outline">{selectedFarmer.qualityGrade}</Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="commitQty">Quantity Committed (kg)</Label>
+                <Input
+                  id="commitQty"
+                  type="number"
+                  min="1"
+                  value={commitQty}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setCommitQty(e.target.value)
+                  }
+                />
+              </div>
+
+              {/* Warning if quantity exceeds farmer's available */}
+              {qtyExceedsFarmerAvailable && (
+                <div className="flex items-center gap-2 rounded-md bg-yellow-50 border border-yellow-200 px-3 py-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
+                  <p className="text-sm text-yellow-700">
+                    Quantity exceeds the farmer's available stock ({selectedFarmer.availableQuantity.toLocaleString()} kg).
+                  </p>
+                </div>
+              )}
+
+              <div className="grid gap-2">
+                <Label htmlFor="commitNotes">Notes</Label>
+                <Textarea
+                  id="commitNotes"
+                  value={commitNotes}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setCommitNotes(e.target.value)
+                  }
+                  placeholder="Optional notes…"
+                  rows={2}
+                />
+              </div>
+
+              {assignError && (
+                <p className="text-sm text-destructive">{assignError}</p>
+              )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="commitNotes">Notes</Label>
-              <Textarea
-                id="commitNotes"
-                value={commitNotes}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setCommitNotes(e.target.value)
-                }
-                placeholder="Optional notes…"
-                rows={2}
-              />
-            </div>
-            {assignError && (
-              <p className="text-sm text-destructive">{assignError}</p>
-            )}
-          </div>
+          )}
+
           <DialogFooter>
+            {assignStep === 2 && (
+              <Button variant="outline" onClick={() => setAssignStep(1)} disabled={assignLoading} className="mr-auto">
+                Back
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setAssignOpen(false)}
@@ -541,19 +687,21 @@ export function AssignmentDetail() {
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleAssignFarmer}
-              disabled={assignLoading || !selectedFarmer || !commitQty}
-            >
-              {assignLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Assigning…
-                </>
-              ) : (
-                "Assign"
-              )}
-            </Button>
+            {assignStep === 2 && (
+              <Button
+                onClick={handleAssignFarmer}
+                disabled={assignLoading || !commitQty || parseInt(commitQty) <= 0}
+              >
+                {assignLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Assigning…
+                  </>
+                ) : (
+                  "Assign"
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

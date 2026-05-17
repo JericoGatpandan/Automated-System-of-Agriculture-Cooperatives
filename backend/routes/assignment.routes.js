@@ -89,6 +89,90 @@ router.get(
 );
 
 // ─────────────────────────────────────────────────────────
+// GET /api/assignments/:id/available-farmers  — Officer: farmers with inventory context
+// ─────────────────────────────────────────────────────────
+router.get(
+  "/:id/available-farmers",
+  authenticate,
+  authorize("Officer"),
+  async (req, res) => {
+    try {
+      const coop = await getOfficerCoop(req.user.userID);
+      if (!coop) return res.status(404).json({ message: "Cooperative not found" });
+
+      const assignment = await db.CoopAssignment.findByPk(req.params.id, {
+        include: [
+          {
+            model: db.BuyerOrder,
+            include: [{ model: db.CropType, attributes: ["cropTypeID", "cropName"] }],
+          },
+        ],
+      });
+      if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+
+      // Scope check
+      if (assignment.primaryCoopID !== coop.primaryCoopID) {
+        return res.status(403).json({ message: "Assignment not in your cooperative" });
+      }
+
+      const cropTypeID = assignment.BuyerOrder.cropTypeID;
+
+      // Get all active farmers in the coop
+      const farmerCoops = await db.FarmerCooperative.findAll({
+        where: { primaryCoopID: coop.primaryCoopID, status: "active" },
+        include: [
+          {
+            model: db.Farmer,
+            where: { isDeleted: false },
+            required: true,
+            attributes: ["farmerID", "firstName", "lastName", "farmName"],
+            include: [
+              {
+                model: db.Product,
+                where: { cropTypeID, isDeleted: false },
+                attributes: ["productID", "availableQuantity", "qualityGrade"],
+                required: false,
+              },
+            ],
+          },
+        ],
+      });
+
+      const farmers = farmerCoops.map((fc) => {
+        const farmer = fc.Farmer;
+        const matchingProduct = farmer.Products?.[0] || null;
+
+        return {
+          farmerID: farmer.farmerID,
+          firstName: farmer.firstName,
+          lastName: farmer.lastName,
+          farmName: farmer.farmName,
+          hasCrop: !!matchingProduct,
+          availableQuantity: matchingProduct ? parseFloat(matchingProduct.availableQuantity) || 0 : 0,
+          qualityGrade: matchingProduct?.qualityGrade || null,
+          productID: matchingProduct?.productID || null,
+        };
+      });
+
+      // Sort: farmers with matching crop first (by available quantity desc), then without
+      farmers.sort((a, b) => {
+        if (a.hasCrop && !b.hasCrop) return -1;
+        if (!a.hasCrop && b.hasCrop) return 1;
+        return b.availableQuantity - a.availableQuantity;
+      });
+
+      res.json({
+        cropType: assignment.BuyerOrder.CropType,
+        farmers,
+      });
+    } catch (err) {
+      console.error("Available farmers error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────
 // GET /api/assignments/:id  — Officer/Admin: assignment detail
 // ─────────────────────────────────────────────────────────
 router.get(
