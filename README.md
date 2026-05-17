@@ -2,6 +2,18 @@
 
 ASAC is a full-stack web application built for the Federation of Agriculture Cooperatives in Camarines Sur (FACCS). It manages cooperative operations end-to-end: farmer registration, order fulfillment, delivery tracking, and financial accounting.
 
+This repository is the final terminal project submission for the course requirement.
+
+## Submission Details
+
+Submitted By
+
+Jerico C. Gatpandan
+
+BS Computer Science - 2nd Year
+
+University of Nueva Caceres
+
 ---
 
 ## Quick Start (Docker)
@@ -16,11 +28,11 @@ This starts three containers:
 
 | Service    | URL                     | Description                            |
 | ---------- | ----------------------- | -------------------------------------- |
-| Frontend   | http://localhost:3000   | React app served via Nginx             |
-| Backend    | http://localhost:8801   | Express API (also proxied via Nginx)   |
+| Frontend   | <http://localhost:3000>   | React app served via Nginx             |
+| Backend    | <http://localhost:8801>   | Express API (also proxied via Nginx)   |
 | Database   | localhost:3307          | MySQL 8 with persistent volume         |
 
-The backend automatically runs migrations and seeds the database on first launch. Once all containers are healthy, open http://localhost:3000 in your browser.
+The backend automatically runs migrations and seeds the database on first launch. Once all containers are healthy, open <http://localhost:3000> in your browser.
 
 To stop everything:
 
@@ -69,6 +81,28 @@ docker compose down -v
 - Docker Compose (full-stack orchestration)
 - Nginx (reverse proxy and static file serving)
 - Named volumes for database and upload persistence
+
+---
+
+## AI-Assisted Development
+
+This project was built with AI assistance, but the implementation is still driven by the project specification and the context files in this repository.
+
+If you want to use AI to help extend ASAC, follow this workflow:
+
+1. Read `GEMINI.md` first, then check the relevant files under `context/`.
+2. Make one bounded change at a time instead of mixing unrelated features.
+3. Keep role boundaries clear for FACCS Admin, Cooperative Officer, and Farmer views.
+4. Validate the change after editing by running the relevant build, lint, or server command.
+5. Update the progress tracker or related context notes when the scope changes.
+
+Good AI prompts for this repo are specific and task-focused, for example:
+
+- “Update the farmer registry form to support X and keep the current layout.”
+- “Fix the backend assignment logic in one file and explain the exact change.”
+- “Add documentation for this feature and keep it aligned with the existing ASAC workflow.”
+
+For the full operating rules, see [GEMINI.md](GEMINI.md) and [context/ai-workflow-rules.md](context/ai-workflow-rules.md).
 
 ---
 
@@ -203,9 +237,9 @@ The application runs at `http://localhost:5173`.
 
 | Role    | Email                                   | Password  |
 | ------- | --------------------------------------- | --------- |
-| Admin   | federation.agricoops.camsur@gmail.com   | password  |
-| Officer | cmpc.officer@faccs.ph                   | password  |
-| Farmer  | farmer1@faccs.ph                        | password  |
+| Admin   | <federation.agricoops.camsur@gmail.com>   | password  |
+| Officer | <cmpc.officer@faccs.ph>                   | password  |
+| Farmer  | <farmer1@faccs.ph>                        | password  |
 
 ---
 
