@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -30,9 +30,14 @@ import {
 } from "../../components/ui/table";
 
 import {
+  ArrowDownUp,
+  CalendarClock,
   ChevronsUpDown,
+  Clock,
   Eye,
+  Flame,
   Loader2,
+  ListFilter,
   MoreVertical,
   Pencil,
   Plus,
@@ -96,6 +101,15 @@ const STATUS_OPTIONS = [
   "cancelled",
 ];
 
+type QuickFilter = "all" | "recent" | "fulfillment" | "urgent";
+
+const QUICK_FILTERS: { key: QuickFilter; label: string; icon: React.ElementType; description: string }[] = [
+  { key: "all", label: "All Orders", icon: ListFilter, description: "Show every order" },
+  { key: "recent", label: "Recent (7 days)", icon: Clock, description: "Orders from the last 7 days" },
+  { key: "fulfillment", label: "Needs Fulfillment", icon: CalendarClock, description: "Pending, assigned, or in-progress" },
+  { key: "urgent", label: "High Urgency", icon: Flame, description: "High-urgency orders only" },
+];
+
 export function OrderList() {
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -105,6 +119,8 @@ export function OrderList() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
+  const [sortNewest, setSortNewest] = useState(true);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -128,14 +144,41 @@ export function OrderList() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const filtered = orders.filter((o) => {
-    const q = search.toLowerCase();
-    const matchSearch =
-      o.buyerName.toLowerCase().includes(q) ||
-      (o.buyerCompany || "").toLowerCase().includes(q);
-    const matchStatus = statusFilter === "all" || o.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const sevenDaysAgo = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d;
+  }, []);
+
+  const filtered = useMemo(() => {
+    let result = orders.filter((o) => {
+      const q = search.toLowerCase();
+      const matchSearch =
+        o.buyerName.toLowerCase().includes(q) ||
+        (o.buyerCompany || "").toLowerCase().includes(q);
+      const matchStatus = statusFilter === "all" || o.status === statusFilter;
+
+      // Quick-filter logic
+      let matchQuick = true;
+      if (quickFilter === "recent") {
+        matchQuick = new Date(o.orderDate) >= sevenDaysAgo;
+      } else if (quickFilter === "fulfillment") {
+        matchQuick = ["pending", "assigned", "inProgress"].includes(o.status);
+      } else if (quickFilter === "urgent") {
+        matchQuick = o.urgencyLevel === "high";
+      }
+
+      return matchSearch && matchStatus && matchQuick;
+    });
+
+    // Sort by date
+    result.sort((a, b) => {
+      const diff = new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
+      return sortNewest ? diff : -diff;
+    });
+
+    return result;
+  }, [orders, search, statusFilter, quickFilter, sortNewest, sevenDaysAgo]);
 
   return (
     <div className="ml-64 min-h-screen bg-gray-50/50">
@@ -152,6 +195,53 @@ export function OrderList() {
           </div>
         </div>
 
+        {/* ── Quick-filter chips ── */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {QUICK_FILTERS.map(({ key, label, icon: Icon, description }) => {
+            const active = quickFilter === key;
+            return (
+              <button
+                key={key}
+                id={`quick-filter-${key}`}
+                title={description}
+                onClick={() => setQuickFilter(active ? "all" : key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 cursor-pointer
+                  ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                  }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+                {active && key !== "all" && (
+                  <X
+                    className="h-3 w-3 ml-0.5 opacity-70 hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuickFilter("all");
+                    }}
+                  />
+                )}
+              </button>
+            );
+          })}
+
+          {/* Sort toggle */}
+          <div className="ml-auto">
+            <button
+              id="sort-date-toggle"
+              onClick={() => setSortNewest((v) => !v)}
+              title={sortNewest ? "Showing newest first" : "Showing oldest first"}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-150 cursor-pointer"
+            >
+              <ArrowDownUp className="h-3.5 w-3.5" />
+              {sortNewest ? "Newest First" : "Oldest First"}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Search + status + new-order bar ── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-72">
@@ -218,6 +308,11 @@ export function OrderList() {
               <CardDescription>
                 {filtered.length} of {orders.length} order
                 {orders.length !== 1 ? "s" : ""}
+                {quickFilter !== "all" && (
+                  <span className="ml-1 text-primary font-medium">
+                    · {QUICK_FILTERS.find((f) => f.key === quickFilter)?.label}
+                  </span>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0">
