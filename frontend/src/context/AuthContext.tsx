@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
+import { API_URL } from "../lib/api";
 
 export type Role = "Admin" | "Officer" | "Farmer";
 
@@ -8,6 +9,7 @@ interface User {
   id: number;
   email: string;
   role: Role;
+  profilePicture?: string | null;
 }
 
 interface AuthContextType {
@@ -15,6 +17,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateProfilePicture: (url: string | null) => void;
   isLoading: boolean;
 }
 
@@ -33,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In a real implementation, we would verify the token with the backend here.
       // For now, we decode it locally or wait for the backend to provide /me.
       // We'll simulate a fetch for the /me endpoint.
-      axios.get("http://localhost:8800/api/auth/me")
+      axios.get(`${API_URL}/api/auth/me`)
         .then((response) => {
           setUser(response.data.user);
         })
@@ -65,8 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     delete axios.defaults.headers.common["Authorization"];
   };
 
+  const updateProfilePicture = (url: string | null) => {
+    setUser((prev) => (prev ? { ...prev, profilePicture: url } : prev));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, updateProfilePicture, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );

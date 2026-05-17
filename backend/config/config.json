@@ -6,6 +6,13 @@
     "host": "localhost",
     "dialect": "mysql"
   },
+  "docker": {
+    "username": "root",
+    "password": "password",
+    "database": "asac_db",
+    "host": "db",
+    "dialect": "mysql"
+  },
   "test": {
     "username": "root",
     "password": "password",

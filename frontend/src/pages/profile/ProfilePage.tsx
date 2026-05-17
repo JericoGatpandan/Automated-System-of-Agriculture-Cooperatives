@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -24,10 +24,12 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Separator } from "../../components/ui/separator";
 
+import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
   Building2,
   Calendar,
+  Camera,
   Hash,
   KeyRound,
   Loader2,
@@ -38,9 +40,10 @@ import {
   Sprout,
   Trash2,
   UserCircle,
+  X,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:8800/api/profile";
+const API_BASE = `${API_URL}/api/profile`;
 
 interface ProfileOrganization {
   type: "cooperative" | "farmer";
@@ -67,13 +70,15 @@ interface Profile {
   id: number;
   email: string;
   role: string;
+  profilePicture?: string | null;
   createdAt: string;
   organization: ProfileOrganization | null;
 }
 
 export function ProfilePage() {
-  const { logout } = useAuth();
+  const { logout, updateProfilePicture } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +98,9 @@ export function ProfilePage() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // ── Avatar upload ──
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   // ── Fetch profile ──
   const fetchProfile = useCallback(async () => {
@@ -161,6 +169,47 @@ export function ProfilePage() {
     }
   };
 
+  // ── Avatar upload handler ──
+  const handleAvatarUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const res = await axios.put(`${API_BASE}/avatar`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const newUrl = res.data.profilePicture;
+      setProfile((prev) =>
+        prev ? { ...prev, profilePicture: newUrl } : prev,
+      );
+      updateProfilePicture(newUrl);
+    } catch (err: any) {
+      console.error("Avatar upload failed:", err);
+    } finally {
+      setAvatarUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setAvatarUploading(true);
+    try {
+      await axios.delete(`${API_BASE}/avatar`);
+      setProfile((prev) =>
+        prev ? { ...prev, profilePicture: null } : prev,
+      );
+      updateProfilePicture(null);
+    } catch (err: any) {
+      console.error("Avatar remove failed:", err);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   // ── Role display labels ──
   const ROLE_LABELS: Record<string, string> = {
     Admin: "FACCS Admin",
@@ -217,6 +266,79 @@ export function ProfilePage() {
         </div>
 
         <div className="space-y-6">
+          {/* ── Profile Picture ── */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-6">
+                <div className="relative group">
+                  <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-border bg-muted">
+                    {profile.profilePicture ? (
+                      <img
+                        src={`${API_URL}${profile.profilePicture}`}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src="/empty-profile.svg"
+                        alt="Default"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={avatarUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    {avatarUploading ? (
+                      <Loader2 className="h-5 w-5 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-5 w-5 text-white" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold">Profile Picture</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Click the photo to upload a new picture. Images are automatically resized to 256x256.
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={avatarUploading}
+                    >
+                      <Camera className="h-3.5 w-3.5 mr-1.5" />
+                      {profile.profilePicture ? "Change Photo" : "Upload Photo"}
+                    </Button>
+                    {profile.profilePicture && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveAvatar}
+                        disabled={avatarUploading}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <X className="h-3.5 w-3.5 mr-1.5" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* ── Section 1: Account Information ── */}
           <Card>
             <CardHeader>

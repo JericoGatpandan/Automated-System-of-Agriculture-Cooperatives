@@ -14,6 +14,7 @@ import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 
 import asacLogo from "../../assets/logo.png";
+import { API_URL } from "../../lib/api";
 // import logotext from "../../assets/logo-text.png";
 
 export function Login() {
@@ -31,7 +32,7 @@ export function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8800/api/auth/login",
+        `${API_URL}/api/auth/login`,
         {
           email,
           password,

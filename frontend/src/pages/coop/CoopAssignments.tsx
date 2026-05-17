@@ -24,8 +24,9 @@ import {
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 import { ClipboardList, Eye, Loader2 } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/assignments";
+const API = `${API_URL}/api/assignments`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",
@@ -84,7 +85,7 @@ export function CoopAssignments() {
   }, [totalPages]);
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
           <ClipboardList className="h-6 w-6 text-primary" />

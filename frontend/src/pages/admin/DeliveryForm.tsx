@@ -24,9 +24,10 @@ import {
 import { Textarea } from "../../components/ui/textarea";
 
 import { ChevronLeft, Loader2, Truck } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/deliveries";
-const ORDER_API = "http://localhost:8800/api/orders";
+const API = `${API_URL}/api/deliveries`;
+const ORDER_API = `${API_URL}/api/orders`;
 
 interface OrderOption {
   orderID: number;

@@ -26,8 +26,8 @@ const port = PORT || 8800;
 const uploadsDir = path.resolve(process.cwd(), "uploads");
 
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use("/uploads", express.static(uploadsDir));
 
 // ── Route Mounting ──

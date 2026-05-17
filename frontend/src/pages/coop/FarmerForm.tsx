@@ -10,6 +10,7 @@ import { Label } from "../../components/ui/label";
 import { LocationSelector } from "../../components/location/LocationSelector";
 import type { LocationValue } from "../../components/location/LocationSelector";
 
+import { API_URL } from "../../lib/api";
 import {
   Building2,
   Check,
@@ -20,7 +21,7 @@ import {
   UserCircle,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/farmers";
+const API = `${API_URL}/api/farmers`;
 
 const STEPS = [
   { label: "Personal Information", icon: UserCircle },

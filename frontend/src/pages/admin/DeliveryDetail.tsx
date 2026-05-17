@@ -34,6 +34,7 @@ import {
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
+import { API_URL } from "../../lib/api";
 import {
   ChevronLeft,
   Pencil,
@@ -43,8 +44,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/deliveries";
-const ORDER_API = "http://localhost:8800/api/orders";
+const API = `${API_URL}/api/deliveries`;
+const ORDER_API = `${API_URL}/api/orders`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",
@@ -119,6 +120,13 @@ export function DeliveryDetail() {
     setCurrentPage(1);
   }, [delivery?.deliveryID]);
 
+  const salesRecords = delivery?.SalesRecords || [];
+  const totalPages = Math.max(1, Math.ceil(salesRecords.length / pageSize));
+  const paginatedSalesRecords = salesRecords.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   useEffect(() => {
     if (!delivery?.orderID || delivery.status !== "pending") {
       setFulfillingCount(null);
@@ -150,6 +158,10 @@ export function DeliveryDetail() {
       }
     })();
   }, [delivery?.orderID, delivery?.status, logout, navigate]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   // Mark as delivered
   const handleDeliver = async () => {
@@ -185,7 +197,7 @@ export function DeliveryDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="ml-64 min-h-screen bg-gray-50/50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -193,7 +205,7 @@ export function DeliveryDetail() {
 
   if (error || !delivery) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="ml-64 min-h-screen bg-gray-50/50">
         <div className="max-w-4xl mx-auto px-6 py-8">
           <Card className="border-destructive/50">
             <CardContent className="pt-6">
@@ -215,19 +227,10 @@ export function DeliveryDetail() {
     );
   }
 
-  const salesRecords = delivery.SalesRecords || [];
-  const totalPages = Math.max(1, Math.ceil(salesRecords.length / pageSize));
-  const paginatedSalesRecords = salesRecords.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
 
-  useEffect(() => {
-    setCurrentPage((page) => Math.min(page, totalPages));
-  }, [totalPages]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="ml-64 min-h-screen bg-gray-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

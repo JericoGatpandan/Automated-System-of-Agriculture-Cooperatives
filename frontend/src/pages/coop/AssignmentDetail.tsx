@@ -42,6 +42,7 @@ import {
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
+import { API_URL } from "../../lib/api";
 import {
   ChevronLeft,
   Plus,
@@ -52,8 +53,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/assignments";
-const FARMER_API = "http://localhost:8800/api/farmers/my-coop";
+const API = `${API_URL}/api/assignments`;
+const FARMER_API = `${API_URL}/api/farmers/my-coop`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",
@@ -116,14 +117,6 @@ export function AssignmentDetail() {
     }
   }, [id, logout, navigate]);
 
-  useEffect(() => {
-    fetchAssignment();
-  }, [fetchAssignment]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [assignment?.assignmentID]);
-
   const totalCommitted =
     assignment?.FarmerFulfillments?.reduce(
       (s: number, f: any) => s + f.quantityCommitted,
@@ -142,6 +135,14 @@ export function AssignmentDetail() {
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
+
+  useEffect(() => {
+    fetchAssignment();
+  }, [fetchAssignment]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [assignment?.assignmentID]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -418,15 +419,17 @@ export function AssignmentDetail() {
                                 updateFulfillmentStatus(f.fulfillmentID, v)
                               }
                             >
-                              <SelectTrigger className="w-28 h-8">
-                                <Badge
-                                  variant="outline"
-                                  className={STATUS_COLORS[f.status] || ""}
-                                >
-                                  {f.status}
-                                </Badge>
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue>
+                                  <Badge
+                                    variant="outline"
+                                    className={STATUS_COLORS[f.status] || ""}
+                                  >
+                                    {f.status}
+                                  </Badge>
+                                </SelectValue>
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent position="popper" sideOffset={4}>
                                 {FULFILLMENT_STATUSES.map((s) => (
                                   <SelectItem key={s} value={s}>
                                     {s}

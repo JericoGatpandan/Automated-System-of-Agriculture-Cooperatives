@@ -363,7 +363,7 @@ async function buildCoopLedgerResponse(req, coopId) {
     whereAccount.status = status;
   }
 
-  const [summaryRows] = await db.sequelize.query(
+  const summaryRows = await db.sequelize.query(
     "CALL sp_build_coop_ledger_summary(:coopId, :start, :end)",
     {
       replacements: {
@@ -558,6 +558,42 @@ router.get("/summary", authenticate, authorize("Admin"), async (_req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// ─────────────────────────────────────────────────────────
+// GET /api/ledger/summary/monthly — Monthly sales trend (Admin)
+// ─────────────────────────────────────────────────────────
+router.get(
+  "/summary/monthly",
+  authenticate,
+  authorize("Admin"),
+  async (_req, res) => {
+    try {
+      const [rows] = await db.sequelize.query(`
+        SELECT
+          DATE_FORMAT(s.transactionDate, '%Y-%m') AS month,
+          SUM(s.grossAmount) AS gross,
+          SUM(s.commissionAmount) AS fees,
+          SUM(s.netAmount) AS net
+        FROM SalesRecords s
+        WHERE s.transactionDate >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+        GROUP BY DATE_FORMAT(s.transactionDate, '%Y-%m')
+        ORDER BY month ASC
+      `);
+
+      res.json(
+        rows.map((r) => ({
+          month: r.month,
+          gross: num(r.gross),
+          fees: num(r.fees),
+          net: num(r.net),
+        })),
+      );
+    } catch (err) {
+      console.error("Monthly trend error:", err);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+);
 
 // ─────────────────────────────────────────────────────────
 // GET /api/ledger/coops/me — Officer cooperative ledger list

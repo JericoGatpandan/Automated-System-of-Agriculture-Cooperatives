@@ -63,6 +63,12 @@ J. Hernandez Ave, Naga City, Camarines Sur
 
 [SOURCE CODE	22](#source-code)
 
+[A. SQL Scripts (DDL)	22](#a-sql-scripts-ddl)
+
+[B. Database Implementation (Programmability)	23](#b-database-implementation-programmability)
+
+[C. SQL Scripts (DML)	25](#c-sql-scripts-dml)
+
 [PICTORIAL DOCUMENTATION	29](#pictorial-documentation)
 
 [RESUME	32](#resume)
@@ -155,6 +161,8 @@ The non-functional requirements define the quality standards ASAC must meet alon
 The following business rules govern data handling and system behavior across all transactions and processes in ASAC:
 
 * A farmer may belong to more than one primary cooperative at the same time. Each cooperative membership creates a separate FarmerAccount and FarmerCooperative record.  
+* Partnership inquiries from external cooperatives are stored in PartnershipRequests; an insert trigger notifies the FACCS Admin automatically.  
+* System notifications (assignments, deliveries, partnership requests) are stored in Notifications and targeted by recipientRole and optional recipientID.  
 * FACCS manages all external buyer orders. Internal cooperative transactions (farmer-to-farmer within the same cooperative) are handled independently by each primary cooperative without FACCS involvement.  
 * Buyers contact FACCS to initiate external orders. FACCS Admin logs the request on their behalf. Buyers are never direct system users.  
 * A 10% total commission applies to all external transactions and is split between FACCS and the primary cooperative. Exact commission rate split is to be confirmed with FACCS management (TBC).  
@@ -199,9 +207,11 @@ The following business rules govern data handling and system behavior across all
 * User (userID (PK), roleID (FK), email, password\_hash, createdAt, isDeleted)  
 * Role (roleID (PK), roleName)  
 * PrimaryCooperative (primaryCoopID (PK), userID (FK), coopName, barangay, municipality, phone, registrationNumber, isDeleted, createdAt)  
-* Farmer (farmerID (PK), userID (FK), firstName, middleName, lastName, suffixName, farmName, farmLocation, isDeleted, createdAt)  
-* CropType (cropTypeID (PK), cropName, category)  
-* Product (productID (PK), farmerID (FK), cropTypeID (FK), unitPrice, availableQuantity, qualityGrade, isDeleted, updatedAt)  
+* Farmer (farmerID (PK), userID (FK), firstName, middleName, lastName, suffixName, farmName, municipality, barangay, isDeleted, createdAt, updatedAt)  
+* CropType (cropTypeID (PK), cropName, category, createdAt, updatedAt)  
+* Product (productID (PK), farmerID (FK), cropTypeID (FK), unitPrice, availableQuantity, qualityGrade, imagePath, isDeleted, createdAt, updatedAt)  
+* PartnershipRequest (id (PK), coopName, contactPerson, email, phone, message, status, createdAt, updatedAt)  
+* Notification (id (PK), recipientRole, recipientID, type, message, referenceId, isRead, createdAt, updatedAt)  
 * FarmerCooperative (farmerCoopID (PK), farmerID (FK), primaryCoopID (FK), joinedDate, status(active, inactive, suspended))
 
 #### Transaction Entities
@@ -213,7 +223,7 @@ The following business rules govern data handling and system behavior across all
 
 #### FarmLedger Accounting Entities
 
-* FarmerAccount (farmerAccountID (PK), farmerID(FK), primaryCoopID (FK), createdDate, status(active, inactive, suspended))  
+* FarmerAccount (farmerAccountID (PK), farmerID (FK), primaryCoopID (FK), createdDate, status, totalShareCapital, createdAt, updatedAt)  
 * SalesRecord (salesRecordID (PK), farmerAccountID (FK), deliveryID (FK), grossAmount, commissionAmount, netAmount, transactionDate, remarks)  
 * FeeRecord (feeRecordID (PK), farmerAccountID (FK), salesRecordID(FK), feeType(federationFee, coopFee, capitalContribution, capitalRetention), rate, amount, status(recorded, waived))  
 * LoanRecord (loanRecordID(PK), farmerAccountID (FK), loanAmount, purpose, releaseDate, dueDate, amountRepaid, outstandingBalance, status (active, partial, paid, overdue), approvedBy(FK) \- user)  
@@ -331,9 +341,11 @@ FarmerAccount (0,N) — (1,1) PrintedStatement
 ROLE (roleID, roleName)  
 USER (userID, roleID\*, email, password\_hash, createdAt, isDeleted)  
 PRIMARY\_COOPERATIVE (primaryCoopID, userID\*, coopName, barangay, municipality, phone, registrationNumber, createdAt, isDeleted)  
-FARMER (farmerID, userID\*, firstName, middleName, lastName, suffixName, farmName, farmLocation, createdAt, isDeleted)  
-CROPTYPE (cropTypeID, cropName, category)  
-PRODUCT (productID, farmerID\*, cropTypeID\*, unitPrice, availableQuantity, qualityGrade, updatedAt, isDeleted)  
+FARMER (farmerID, userID\*, firstName, middleName, lastName, suffixName, farmName, municipality, barangay, isDeleted, createdAt, updatedAt)  
+CROP\_TYPE (cropTypeID, cropName, category, createdAt, updatedAt)  
+PRODUCT (productID, farmerID\*, cropTypeID\*, unitPrice, availableQuantity, qualityGrade, imagePath, isDeleted, createdAt, updatedAt)  
+PARTNERSHIP\_REQUEST (id, coopName, contactPerson, email, phone, message, status, createdAt, updatedAt)  
+NOTIFICATION (id, recipientRole, recipientID, type, message, referenceId, isRead, createdAt, updatedAt)  
 FARMER\_COOPERATIVE (farmerCoopID, farmerID\*, primaryCoopID\*, joinedDate, status)
 
 BUYER\_ORDER (orderID, managedBy\*, buyerName, buyerCompany, buyerContact, cropTypeID\*, requestedQuantity, urgencyLevel, orderDate, status, notes)  
@@ -341,7 +353,7 @@ COOP\_ASSIGNMENT (assignmentID, orderID\*, primaryCoopID\*, assignedBy\*, assign
 FARMER\_FULFILLMENT (fulfillmentID, assignmentID\*, farmerID\*, assignedBy\*, quantityCommitted, status, notes)  
 DELIVERY\_RECORD (deliveryID, orderID\*, managedBy\*, consolidationDate, deliveryDate, totalTransactionAmount, commissionRateFederation, commissionRateCoop, status, notes)
 
-FARMER\_ACCOUNT (farmerAccountID, farmerID\*, primaryCoopID\*, createdDate, status)  
+FARMER\_ACCOUNT (farmerAccountID, farmerID\*, primaryCoopID\*, createdDate, status, totalShareCapital, createdAt, updatedAt)  
 SALES\_RECORD (salesRecordID, farmerAccountID\*, deliveryID\*, grossAmount, commissionAmount, netAmount, transactionDate, remarks)  
 FEE\_RECORD (feeRecordID, farmerAccountID\*, salesRecordID\*, feeType, rate, amount, status)  
 LOAN\_RECORD (loanRecordID, farmerAccountID\*, loanAmount, purpose, releaseDate, dueDate, amountRepaid, outstandingBalance, status, approvedBy\*)  
@@ -362,21 +374,25 @@ PRINTED\_STATEMENT (printedStatementID, farmerAccountID\*, periodStart, periodEn
 | :---- | :---- | :---- | :---- | :---- | :---- |
 | **userID** | **roleID** | **email** | **password\_hash** | **createdAt** | **isDeleted** |
 | **PK, UA** | FK, NN, NC | NN, ND | NN | NN | NN |
-| **1** | 1 | faccs.admin@faccs.ph | $2b$12$hashed\_A | 2024-01-10 | FALSE |
-| **2** | 2 | cmpc.officer@cmpc.coop | $2b$12$hashed\_B | 2024-01-15 | FALSE |
-| **3** | 3 | juan.dela.cruz@farmer.ph | $2b$12$hashed\_C | 2024-02-01 | FALSE |
-| **4** | 2 | mmpc.officer@mmpc.coop | $2b$12$hashed\_D | 2024-02-10 | FALSE |
-| **5** | 3 | pedro.santos@farmer.ph | $2b$12$hashed\_E | 2024-03-05 | FALSE |
+| **1** | 1 | faccs.admin@faccs.ph | *(bcrypt hash)* | 2026-05-16 | FALSE |
+| **2** | 2 | cmpc.officer@faccs.ph | *(bcrypt hash)* | 2026-05-16 | FALSE |
+| **3** | 2 | mmpc.officer@faccs.ph | *(bcrypt hash)* | 2026-05-16 | FALSE |
+| **21** | 3 | jerico.gatpandan@farmer.ph | *(bcrypt hash)* | 2026-05-16 | FALSE |
+| **22** | 3 | thatiana.calma@farmer.ph | *(bcrypt hash)* | 2026-05-16 | FALSE |
+
+*Development seed password for all accounts: `password` (hashed with bcrypt, 10 rounds). Full seed: 32 users (1 admin, 19 coop officers, 12 farmers).*
 
 | PrimaryCooperative |  |  |  |  |  |  |  |  |
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
-| **coopID** | **userID** | **coopName** | **barangay** | **municipality** | **phone** | **registrationNumber** | **isDeleted** | **createdAt** |
+| **primaryCoopID** | **userID** | **coopName** | **barangay** | **municipality** | **phone** | **registrationNumber** | **isDeleted** | **createdAt** |
 | **PK, SA, NN, ND, NC** | FK, NN, ND | NN, ND | NN | NN |  | NN, ND | **NN** | **NN** |
-| **1** | 2 | CamSur Multi-Purpose Cooperative (CMPC) | Poblacion | Pili | 9171234567 | CDA-9520-001 | **FALSE** | **2024-01-15** |
-| **2** | 4 | Magarao Multi-Purpose Cooperative (MMPC) | Magarao Centro | Magarao | 9182345678 | CDA-9520-002 | **FALSE** | **2024-01-20** |
-| **3** | 6 | San Agustin-San Ramon Agrarian Reform Farmers Cooperative (SARFC) | San Agustin | Bula | 9193456789 | CDA-9520-003 | **FALSE** | **2024-02-01** |
-| **4** | 8 | Lirag Agrarian Reform Farmer Beneficiaries Cooperative (LARFBCO) | Lirag | Bula | 9204567890 | CDA-9520-004 | **FALSE** | **2024-02-05** |
-| **5** | 10 | Sampaloc Multi-Purpose Cooperative (SMPC) | Sampaloc | Gainza | 9215678901 | CDA-9520-005 | **FALSE** | **2024-02-10** |
+| **1** | 2 | CamSur Multi-Purpose Cooperative (CMPC) | Poblacion | Pili | 09171234567 | CDA-9520-2026-001 | **FALSE** | **2026-01-10** |
+| **2** | 3 | Magarao Multi-Purpose Cooperative (MMPC) | San Miguel | Magarao | 09182345678 | CDA-9520-2026-002 | **FALSE** | **2026-01-10** |
+| **3** | 4 | San Agustin-San Ramon Agrarian Reform Farmers Cooperative (SARFC) | San Agustin | Bula | 09193456789 | CDA-9520-2026-003 | **FALSE** | **2026-01-10** |
+| **4** | 5 | Lirag Agrarian Reform Farmer Beneficiaries Cooperative (LARFBCO) | Lirag | Bula | 09204567890 | CDA-9520-2026-004 | **FALSE** | **2026-01-10** |
+| **5** | 6 | Sampaloc Multi-Purpose Cooperative (SMPC) | Sampaloc | Gainza | 09215678901 | CDA-9520-2026-005 | **FALSE** | **2026-01-10** |
+
+*Seed data includes all 19 FACCS primary cooperatives (primaryCoopID 1–19).*
 
 | Product |  |  |  |  |  |  |  |
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
@@ -388,15 +404,15 @@ PRINTED\_STATEMENT (printedStatementID, farmerAccountID\*, periodStart, periodEn
 | **4** | 4 | 2 | 18 | 400 | Grade A | FALSE | 2024-09-12 |
 | **5** | 5 | 3 | 12 | 600 | Grade B | FALSE | 2024-09-15 |
 
-| Farmer |  |  |  |  |  |  |  |  |  |
-| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
-| **farmerID** | **userID** | **firstName** | **middleName** | **lastName** | **suffixName** | **farmName** | **farmLocation** | **isDeleted** | createdAt |
-| **PK, SA, NN, ND, NC** | FK, ND | NN |  | NN |  |  | NN | NN | NN |
-| **1** | 3 | Juan | Reyes | Dela Cruz |  | Dela Cruz Farm | Bula, CamSur | FALSE | 2024-02-01 |
-| **2** | 5 | Pedro | Lim | Santos | Jr. | Santos Organic Farm | Pili, CamSur | FALSE | 2024-03-05 |
-| **3** | 7 | Maria | Cruz | Villanueva |  | Villanueva Rice Farm | Magarao, CamSur | FALSE | 2024-03-10 |
-| **4** | 9 | Roberto |  | Navarro |  | Navarro Farm | Gainza, CamSur | FALSE | 2024-03-15 |
-| **5** | 11 | Ligaya | Morales | Garcia |  | Garcia Coco Farm | Bula, CamSur | FALSE | 2024-04-01 |
+| Farmer |  |  |  |  |  |  |  |  |  |  |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| **farmerID** | **userID** | **firstName** | **middleName** | **lastName** | **suffixName** | **farmName** | **municipality** | **barangay** | **isDeleted** | **createdAt** |
+| **PK, SA, NN, ND, NC** | FK, ND | NN |  | NN |  | NN | NN | NN | NN | NN |
+| **1** | 21 | Jerico | C. | Gatpandan |  | Gatpandan Integrated Farm | Pili | San Agustin | FALSE | 2026-02-10 |
+| **2** | 22 | Thatiana Nicole | R. | Calma |  | Calma Family Farm | Bula | Sagrada | FALSE | 2026-02-12 |
+| **3** | 23 | Frence Sherwin | S. | Triste |  | Triste Agri Cooperative Farm | Bula | San Roque | FALSE | 2026-02-14 |
+| **4** | 24 | Sarah | G. | Geronimo |  | Geronimo Rice Farm | Magarao | San Miguel | FALSE | 2026-02-18 |
+| **5** | 25 | Daniel | J. | Padilla |  | Padilla Organic Farm | Gainza | Sampaloc | FALSE | 2026-02-20 |
 
 | CropType |  |  |
 | :---- | :---- | :---- |
@@ -422,11 +438,11 @@ PRINTED\_STATEMENT (printedStatementID, farmerAccountID\*, periodStart, periodEn
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
 | **orderID** | **managedBy** | **buyerName** | **buyerCompany** | **buyerContact** | **cropTypeID** | **requestedQuantity** | **urgencyLevel** | **orderDate** | **status** | **notes** |
 | **PK, SA, NN, ND, NC** | FK, NN | NN |  | NN | FK, NN | NN | NN | NN | NN |  |
-| **1** | 1 | NFA Regional Office | National Food Authority | 9171110001 | 1 | 2000 | high | 2024-09-01 | inProgress | Urgent rice procurement |
-| **2** | 1 | PhilRice | Philippine Rice Research Inst. | 9172220002 | 1 | 1000 | normal | 2024-09-05 | assigned | Research-grade rice |
-| **3** | 1 | Bigg's Inc. | Bigg's Diner Chain | 9173330003 | 4 | 300 | normal | 2024-09-10 | pending | Fresh vegetables |
-| **4** | 1 | Camsur Provincial Gov. | Provincial Agriculture Office | 9174440004 | 2 | 500 | high | 2024-09-12 | consolidated | Corn for seedling dist. |
-| **5** | 1 | Kadiwa ng Pangulo | DA-KADIWA Program | 9175550005 | 3 | 1500 | normal | 2024-09-15 | pending | Coconut products |
+| **1** | 1 | NFA Regional Office | National Food Authority | 09171110001 | 1 | 2000 | high | 2026-05-01 | delivered | May 2026 rice procurement |
+| **2** | 1 | PhilRice | Philippine Rice Research Institute | 09172220002 | 1 | 1000 | normal | 2026-05-03 | assigned | Research-grade rice |
+| **3** | 1 | Biggs Inc. | Biggs Diner Chain | 09173330003 | 4 | 300 | normal | 2026-05-04 | pending | Fresh vegetables |
+| **4** | 1 | Camsur Provincial Gov. | Provincial Agriculture Office | 09174440004 | 2 | 500 | high | 2026-05-07 | delivered | Corn for seedling distribution |
+| **5** | 1 | Kadiwa ng Pangulo | DA-KADIWA Program | 09175550005 | 3 | 1500 | normal | 2026-05-08 | cancelled | Coconut products – order cancelled |
 
 | CoopAssignment |  |  |  |  |  |  |
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
@@ -464,7 +480,10 @@ PRINTED\_STATEMENT (printedStatementID, farmerAccountID\*, periodStart, periodEn
                 CropType-Table \+ Product-Table \+ FarmerCooperative-Table \+  
                 BuyerOrder-Table \+ CoopAssignment-Table \+ FarmerFulfillment-Table \+  
                 DeliveryRecord-Table \+ FarmerAccount-Table \+ SalesRecord-Table \+  
-                FeeRecord-Table \+ LoanRecord-Table \+ PrintedStatement-Table
+                FeeRecord-Table \+ LoanRecord-Table \+ PrintedStatement-Table \+  
+                PartnershipRequest-Table \+ Notification-Table
+
+*Database objects (views, procedures, triggers, events) are maintained in `backend/migrations/` and applied via Sequelize CLI (`npx sequelize-cli db:migrate`). Seed data is in `backend/seeders/` (`npx sequelize-cli db:seed:all`).*
 
 **Role-Table** \= @roleID \+ roleName  
 roleID  \= Number \* Long Integer  
@@ -501,7 +520,7 @@ isDeleted \= Number \* Boolean
                      Legal Character \= \[0 | 1\]
 
 **Farmer-Table** \= @farmerID \+ userID \+ firstName \+ (middleName) \+ lastName \+  
-               (suffixName) \+ farmName \+ farmLocation \+ createdAt \+ isDeleted  
+               (suffixName) \+ farmName \+ municipality \+ barangay \+ isDeleted \+ createdAt \+ updatedAt  
 farmerID \= Number \* Long Integer  
 userID \=  \* FK from User-Table in column userID  
 firstName   \= 1{Legal-Character}50  
@@ -513,9 +532,10 @@ suffixName  \= 1{Legal-Character}10 (optional)
                Suffix \= \["Jr." | "Sr." | "II" | "III"\]  
 farmName \= 1{Legal-Character}100  
                Legal Character \= \[a-z | A-Z | 0-9 | . | \- | \]  
-farmLocation \= 1{Legal-Character}150  
-               Legal Character \= \[a-z | A-Z | 0-9 | , | . | \- | \]  
+municipality \= 1{Legal-Character}100  
+barangay \= 1{Legal-Character}100  
 createdAt   \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
+updatedAt   \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
 isDeleted   \= Number \* Boolean  
                Legal Character \= \[0 | 1\]
 
@@ -527,17 +547,37 @@ category \= 1{Legal-Character}50
              Legal Character \= \[a-z | A-Z | 0-9 | . | \- | \]
 
 **Product-Table** \= @productID \+ farmerID \+ cropTypeID \+ unitPrice \+  
-                availableQuantity \+ qualityGrade \+ updatedAt \+ isDeleted  
+                availableQuantity \+ qualityGrade \+ (imagePath) \+ isDeleted \+ createdAt \+ updatedAt  
 productID   \= Number \* Long Integer  
 farmerID \= \* FK from Farmer-Table in column farmerID  
 cropTypeID \= \* FK from CropType-Table in column cropTypeID  
 unitPrice   \= Number \* Double(10,2)  
 availableQuantity \= Number \* Long Integer  
 qualityGrade \= 1{Legal-Character}10  
-                    Legal Character \= \[A | B | C\]  
+                    Legal Character \= \[Grade A | Grade B | Grade C\]  
+imagePath \= 1{Legal-Character}500 (optional, relative upload path)  
+createdAt   \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
 updatedAt   \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
 isDeleted   \= Number \* Boolean  
                     Legal Character \= \[0 | 1\]
+
+**PartnershipRequest-Table** \= @id \+ coopName \+ contactPerson \+ email \+ phone \+ message \+ status \+ createdAt \+ updatedAt  
+id \= Number \* Long Integer  
+coopName \= 1{Legal-Character}255  
+contactPerson \= 1{Legal-Character}255  
+email \= 1{Legal-Character}255  
+phone \= 1{Legal-Character}50  
+message \= 1{Legal-Character}unlimited  
+status \= Legal-Character \[pending | reviewed | approved | rejected\]
+
+**Notification-Table** \= @id \+ recipientRole \+ (recipientID) \+ type \+ message \+ referenceId \+ isRead \+ createdAt \+ updatedAt  
+id \= Number \* Long Integer  
+recipientRole \= Legal-Character \[Admin | Officer | Farmer\]  
+recipientID \= Number \* Long Integer (optional, e.g. primaryCoopID for officers)  
+type \= Legal-Character \[partnership\_request | delivery\_confirmation | coop\_assignment | ...\]  
+message \= 1{Legal-Character}500  
+referenceId \= Number \* Long Integer  
+isRead \= Number \* Boolean
 
 **FarmerCooperative-Table** \= @farmerCoopID \+ farmerID \+ primaryCoopID \+ joinedDate \+ status  
 farmerCoopID \= Number \* Long Integer  
@@ -603,13 +643,16 @@ status      \= Legal-Character
 notes       \= 1{Legal-Character}unlimited (optional)  
                             Legal Character \= \[a-z | A-Z | 0-9 | , | . | \- | \]
 
-**FarmerAccount-Table** \= @farmerAccountID \+ farmerID \+ primaryCoopID \+ createdDate \+ status  
+**FarmerAccount-Table** \= @farmerAccountID \+ farmerID \+ primaryCoopID \+ createdDate \+ status \+ totalShareCapital \+ createdAt \+ updatedAt  
 farmerAccountID \= Number \* Long Integer  
 farmerID \= \* FK from Farmer-Table in column farmerID  
 primaryCoopID \= \* FK from PrimaryCooperative-Table in column primaryCoopID  
 createdDate \= Legal-Date \* "yyyy-mm-dd"  
 status \= Legal-Character  
-                  Legal Character \= \[active | inactive | suspended\]
+                  Legal Character \= \[active | inactive | suspended | Pending\]  
+totalShareCapital \= Number \* Double(12,2) — maintained by trigger `tr_after_fee_insert`  
+createdAt \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"  
+updatedAt \= Legal-Date \* "yyyy-mm-dd hh:mm:ss"
 
 **SalesRecord-Table** \= @salesRecordID \+ farmerAccountID \+ deliveryID \+ grossAmount \+  
                      commissionAmount \+ netAmount \+ transactionDate \+ (remarks)  
@@ -665,237 +708,813 @@ netBalance   \= Number \* Double(12,2)
 
 # **SOURCE CODE** {#source-code}
 
-\-- ASAC DATABASE  
-\-- Accounting System of Agriculture Cooperatives
+The database layer of ASAC is implemented in **MySQL 8** and version-controlled as Sequelize migrations under `backend/migrations/`. Table names use **PascalCase plurals** (e.g. `Users`, `Farmers`) as generated by Sequelize. Apply schema and programmability with:
 
-CREATE DATABASE ASAC\_DB;  
-USE ASAC\_DB;
+`npx sequelize-cli db:migrate`  
+`npx sequelize-cli db:seed:all`
 
-\-- ROLE
+---
 
-CREATE TABLE Role (  
-  roleID INT PRIMARY KEY AUTO\_INCREMENT,  
-  roleName VARCHAR(50)  NOT NULL  
+## **A. SQL Scripts (DDL)** {#a-sql-scripts-ddl}
+
+*Data Definition Language — creates the ASAC schema (17 core tables + indexes + views). Representative DDL aligned with the live migrations:*
+
+```sql
+-- ASAC Database — Accounting System of Agriculture Cooperatives
+CREATE DATABASE IF NOT EXISTS asac_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE asac_db;
+
+-- ── Core registry ──
+CREATE TABLE Roles (
+  roleID INT AUTO_INCREMENT PRIMARY KEY,
+  roleName VARCHAR(255),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
 );
 
-\-- USER
-
-CREATE TABLE User (  
-  userID INT PRIMARY KEY AUTO\_INCREMENT,  
-  roleID INT NOT NULL,  
-  email  VARCHAR(100)  NOT NULL UNIQUE,  
-  password\_hash VARCHAR(255)  NOT NULL,  
-  createdAt DATETIME  DEFAULT CURRENT\_TIMESTAMP,  
-  isDeleted BOOLEAN DEFAULT 0,  
-  FOREIGN KEY (roleID) REFERENCES Role(roleID)  
+CREATE TABLE Users (
+  userID INT AUTO_INCREMENT PRIMARY KEY,
+  roleID INT NOT NULL,
+  email VARCHAR(255),
+  password_hash VARCHAR(255),
+  isDeleted TINYINT(1),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (roleID) REFERENCES Roles(roleID)
 );
 
-\-- PRIMARY COOPERATIVE
-
-CREATE TABLE PrimaryCooperative (  
-  primaryCoopID  INT PRIMARY KEY AUTO\_INCREMENT,  
-  userID INT,  
-  coopName VARCHAR(100),  
-  barangay VARCHAR(100),  
-  municipality VARCHAR(100),  
-  phone  VARCHAR(20),  
-  registrationNumber VARCHAR(50),  
-  createdAt DATETIME DEFAULT CURRENT\_TIMESTAMP,  
-  isDeleted BOOLEAN  DEFAULT 0,  
-  FOREIGN KEY (userID) REFERENCES User(userID)  
+CREATE TABLE PrimaryCooperatives (
+  primaryCoopID INT AUTO_INCREMENT PRIMARY KEY,
+  userID INT NOT NULL UNIQUE,
+  coopName VARCHAR(255),
+  barangay VARCHAR(255),
+  municipality VARCHAR(255),
+  phone VARCHAR(255),
+  registrationNumber VARCHAR(255),
+  isDeleted TINYINT(1),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
-\-- FARMER
-
-CREATE TABLE Farmer (  
-  farmerID INT PRIMARY KEY AUTO\_INCREMENT,  
-  userID INT NULL,  
-  firstName  VARCHAR(50),  
-  middleName VARCHAR(50),  
-  lastName VARCHAR(50),  
-  suffixName VARCHAR(10),  
-  farmName VARCHAR(100),  
-  farmLocation VARCHAR(150),  
-  createdAt  DATETIME DEFAULT CURRENT\_TIMESTAMP,  
-  isDeleted  BOOLEAN  DEFAULT 0,  
-  FOREIGN KEY (userID) REFERENCES User(userID)  
+CREATE TABLE Farmers (
+  farmerID INT AUTO_INCREMENT PRIMARY KEY,
+  userID INT UNIQUE,
+  firstName VARCHAR(255),
+  middleName VARCHAR(255),
+  lastName VARCHAR(255),
+  suffixName VARCHAR(255),
+  farmName VARCHAR(255),
+  municipality VARCHAR(255),
+  barangay VARCHAR(255),
+  isDeleted TINYINT(1),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
-\-- CROP TYPE
-
-CREATE TABLE CropType (  
-  cropTypeID INT  PRIMARY KEY AUTO\_INCREMENT,  
-  cropName VARCHAR(50),  
-  category VARCHAR(50)  
+CREATE TABLE CropTypes (
+  cropTypeID INT AUTO_INCREMENT PRIMARY KEY,
+  cropName VARCHAR(255),
+  category VARCHAR(255),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
 );
 
-\-- PRODUCT
-
-CREATE TABLE Product (  
-  productID  INT  PRIMARY KEY AUTO\_INCREMENT,  
-  farmerID INT,  
-  cropTypeID INT,  
-  unitPrice  DECIMAL(10,2),  
-  availableQuantity INT,  
-  qualityGrade  VARCHAR(10),  
-  updatedAt  DATETIME,  
-  isDeleted  BOOLEAN DEFAULT 0,  
-  FOREIGN KEY (farmerID) REFERENCES Farmer(farmerID),  
-  FOREIGN KEY (cropTypeID) REFERENCES CropType(cropTypeID)  
+CREATE TABLE Products (
+  productID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerID INT NOT NULL,
+  cropTypeID INT NOT NULL,
+  unitPrice DECIMAL(10,2),
+  availableQuantity INT,
+  qualityGrade VARCHAR(255),
+  imagePath TEXT,
+  isDeleted TINYINT(1),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerID) REFERENCES Farmers(farmerID),
+  FOREIGN KEY (cropTypeID) REFERENCES CropTypes(cropTypeID)
 );
 
-\-- FARMER COOPERATIVE
-
-CREATE TABLE FarmerCooperative (  
-  farmerCoopID  INT  PRIMARY KEY AUTO\_INCREMENT,  
-  farmerID  INT,  
-  primaryCoopID INT,  
-  joinedDate  DATE,  
-  status VARCHAR(20),  
-  FOREIGN KEY (farmerID)  REFERENCES Farmer(farmerID),  
-  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperative(primaryCoopID)  
+CREATE TABLE FarmerCooperatives (
+  farmerCoopID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerID INT NOT NULL,
+  primaryCoopID INT NOT NULL,
+  joinedDate DATE,
+  status VARCHAR(255),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerID) REFERENCES Farmers(farmerID),
+  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperatives(primaryCoopID)
 );
 
-\-- BUYER ORDER
-
-CREATE TABLE BuyerOrder (  
-  orderID INT PRIMARY KEY AUTO\_INCREMENT,  
-  managedBy  INT,  
-  buyerName  VARCHAR(100),  
-  buyerCompany  VARCHAR(100),  
-  buyerContact  VARCHAR(50),  
-  cropTypeID INT,  
-  requestedQuantity INT,  
-  urgencyLevel  VARCHAR(20),  
-  orderDate  DATE,  
-  status  VARCHAR(20),  
-  notes TEXT,  
-  FOREIGN KEY (managedBy)  REFERENCES User(userID),  
-  FOREIGN KEY (cropTypeID) REFERENCES CropType(cropTypeID)  
+-- ── Order & transaction ──
+CREATE TABLE BuyerOrders (
+  orderID INT AUTO_INCREMENT PRIMARY KEY,
+  managedBy INT NOT NULL,
+  buyerName VARCHAR(255),
+  buyerCompany VARCHAR(255),
+  buyerContact VARCHAR(255),
+  cropTypeID INT NOT NULL,
+  requestedQuantity INT,
+  urgencyLevel VARCHAR(255),
+  orderDate DATETIME,
+  status VARCHAR(255),
+  notes TEXT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (managedBy) REFERENCES Users(userID),
+  FOREIGN KEY (cropTypeID) REFERENCES CropTypes(cropTypeID)
 );
 
-\-- COOP ASSIGNMENT
-
-CREATE TABLE CoopAssignment (  
-  assignmentID INT  PRIMARY KEY AUTO\_INCREMENT,  
-  orderID INT,  
-  primaryCoopID  INT,  
-  assignedBy INT,  
-  assignedDate DATE,  
-  quantityRequired INT,  
-  status VARCHAR(20),  
-  FOREIGN KEY (orderID) REFERENCES BuyerOrder(orderID),  
-  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperative(primaryCoopID),  
-  FOREIGN KEY (assignedBy)  REFERENCES User(userID)  
+CREATE TABLE CoopAssignments (
+  assignmentID INT AUTO_INCREMENT PRIMARY KEY,
+  orderID INT NOT NULL,
+  primaryCoopID INT NOT NULL,
+  assignedBy INT NOT NULL,
+  assignedDate DATE,
+  quantityRequired INT,
+  status VARCHAR(255),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (orderID) REFERENCES BuyerOrders(orderID),
+  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperatives(primaryCoopID),
+  FOREIGN KEY (assignedBy) REFERENCES Users(userID)
 );
 
-\-- FARMER FULFILLMENT
-
-CREATE TABLE FarmerFulfillment (  
-  fulfillmentID INT  PRIMARY KEY AUTO\_INCREMENT,  
-  assignmentID  INT,  
-  farmerID INT,  
-  assignedBy INT,  
-  quantityCommitted INT,  
-  status  VARCHAR(20),  
-  notes TEXT,  
-  FOREIGN KEY (assignmentID) REFERENCES CoopAssignment(assignmentID),  
-  FOREIGN KEY (farmerID) REFERENCES Farmer(farmerID),  
-  FOREIGN KEY (assignedBy) REFERENCES User(userID)  
+CREATE TABLE FarmerFulfillments (
+  fulfillmentID INT AUTO_INCREMENT PRIMARY KEY,
+  assignmentID INT NOT NULL,
+  farmerID INT NOT NULL,
+  assignedBy INT NOT NULL,
+  quantityCommitted INT,
+  status VARCHAR(255),
+  notes TEXT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (assignmentID) REFERENCES CoopAssignments(assignmentID),
+  FOREIGN KEY (farmerID) REFERENCES Farmers(farmerID),
+  FOREIGN KEY (assignedBy) REFERENCES Users(userID)
 );
 
-\-- DELIVERY RECORD
-
-CREATE TABLE DeliveryRecord (  
-  deliveryID INT  PRIMARY KEY AUTO\_INCREMENT,  
-  orderID INT,  
-  managedBy  INT,  
-  consolidationDate DATE,  
-  deliveryDate DATE,  
-  totalTransactionAmount DECIMAL(12,2),  
-  commissionRateFederation DECIMAL(5,2),  
-  commissionRateCoop DECIMAL(5,2),  
-  status  VARCHAR(20),  
-  notes TEXT,  
-  FOREIGN KEY (orderID)  REFERENCES BuyerOrder(orderID),  
-  FOREIGN KEY (managedBy)  REFERENCES User(userID)  
+CREATE TABLE DeliveryRecords (
+  deliveryID INT AUTO_INCREMENT PRIMARY KEY,
+  orderID INT NOT NULL,
+  managedBy INT NOT NULL,
+  consolidationDate DATE,
+  deliveryDate DATE,
+  totalTransactionAmount DECIMAL(12,2),
+  commissionRateFederation DECIMAL(5,2),
+  commissionRateCoop DECIMAL(5,2),
+  status VARCHAR(255),
+  notes TEXT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (orderID) REFERENCES BuyerOrders(orderID),
+  FOREIGN KEY (managedBy) REFERENCES Users(userID)
 );
 
-\-- FARMER ACCOUNT
-
-CREATE TABLE FarmerAccount (  
-  farmerAccountID INT  PRIMARY KEY AUTO\_INCREMENT,  
-  farmerID INT,  
-  primaryCoopID INT,  
-  createdDate DATE,  
-  status VARCHAR(20),  
-  FOREIGN KEY (farmerID)  REFERENCES Farmer(farmerID),  
-  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperative(primaryCoopID)  
+-- ── FarmLedger accounting ──
+CREATE TABLE FarmerAccounts (
+  farmerAccountID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerID INT NOT NULL,
+  primaryCoopID INT NOT NULL,
+  createdDate DATETIME,
+  status VARCHAR(255),
+  totalShareCapital DECIMAL(12,2) DEFAULT 0.00,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerID) REFERENCES Farmers(farmerID),
+  FOREIGN KEY (primaryCoopID) REFERENCES PrimaryCooperatives(primaryCoopID)
 );
 
-\-- SALES RECORD
-
-CREATE TABLE SalesRecord (  
-  salesRecordID INT PRIMARY KEY AUTO\_INCREMENT,  
-  farmerAccountID INT,  
-  deliveryID  INT,  
-  grossAmount DECIMAL(12,2),  
-  commissionAmount DECIMAL(12,2),  
-  netAmount DECIMAL(12,2),  
-  transactionDate DATE,  
-  remarks  TEXT,  
-  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccount(farmerAccountID),  
-  FOREIGN KEY (deliveryID)  REFERENCES DeliveryRecord(deliveryID)  
+CREATE TABLE SalesRecords (
+  salesRecordID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerAccountID INT NOT NULL,
+  deliveryID INT NOT NULL,
+  grossAmount DECIMAL(12,2),
+  commissionAmount DECIMAL(12,2),
+  netAmount DECIMAL(12,2),
+  transactionDate DATE,
+  remarks TEXT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccounts(farmerAccountID),
+  FOREIGN KEY (deliveryID) REFERENCES DeliveryRecords(deliveryID)
 );
 
-\-- FEE RECORD
-
-CREATE TABLE FeeRecord (  
-  feeRecordID INT PRIMARY KEY AUTO\_INCREMENT,  
-  farmerAccountID INT,  
-  salesRecordID INT,  
-  feeType  VARCHAR(50),  
-  rate  DECIMAL(5,2),  
-  amount DECIMAL(12,2),  
-  status VARCHAR(20),  
-  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccount(farmerAccountID),  
-  FOREIGN KEY (salesRecordID) REFERENCES SalesRecord(salesRecordID)  
+CREATE TABLE FeeRecords (
+  feeRecordID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerAccountID INT NOT NULL,
+  salesRecordID INT NOT NULL,
+  feeType VARCHAR(255),
+  rate DECIMAL(5,2),
+  amount DECIMAL(12,2),
+  status VARCHAR(255),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccounts(farmerAccountID),
+  FOREIGN KEY (salesRecordID) REFERENCES SalesRecords(salesRecordID)
 );
 
-\-- LOAN RECORD
-
-CREATE TABLE LoanRecord (  
-  loanRecordID  INT PRIMARY KEY AUTO\_INCREMENT,  
-  farmerAccountID INT,  
-  loanAmount DECIMAL(12,2),  
-  purpose VARCHAR(100),  
-  releaseDate DATE,  
-  dueDate DATE,  
-  amountRepaid  DECIMAL(12,2),  
-  outstandingBalance DECIMAL(12,2),  
-  status  VARCHAR(20),  
-  approvedBy INT,  
-  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccount(farmerAccountID),  
-  FOREIGN KEY (approvedBy)  REFERENCES User(userID)  
+CREATE TABLE LoanRecords (
+  loanRecordID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerAccountID INT NOT NULL,
+  loanAmount DECIMAL(12,2),
+  purpose VARCHAR(255),
+  releaseDate DATE,
+  dueDate DATE,
+  amountRepaid DECIMAL(12,2),
+  outstandingBalance DECIMAL(12,2),
+  status VARCHAR(255),
+  approvedBy INT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccounts(farmerAccountID),
+  FOREIGN KEY (approvedBy) REFERENCES Users(userID)
 );
 
-\-- PRINTED STATEMENT
-
-CREATE TABLE PrintedStatement (  
-  printedStatementID INT PRIMARY KEY AUTO\_INCREMENT,  
-  farmerAccountID  INT,  
-  periodStart DATE,  
-  periodEnd DATE,  
-  generatedBy INT,  
-  generatedDate  DATE,  
-  totalGrossSales  DECIMAL(12,2),  
-  totalCommission  DECIMAL(12,2),  
-  totalShareCapital  DECIMAL(12,2),  
-  totalLoans  DECIMAL(12,2),  
-  netBalance  DECIMAL(12,2),  
-  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccount(farmerAccountID),  
-  FOREIGN KEY (generatedBy) REFERENCES User(userID)  
+CREATE TABLE PrintedStatements (
+  printedStatementID INT AUTO_INCREMENT PRIMARY KEY,
+  farmerAccountID INT NOT NULL,
+  periodStart DATE,
+  periodEnd DATE,
+  generatedBy INT,
+  generatedDate DATETIME,
+  totalGrossSales DECIMAL(12,2),
+  totalCommission DECIMAL(12,2),
+  totalShareCapital DECIMAL(12,2),
+  totalLoans DECIMAL(12,2),
+  netBalance DECIMAL(12,2),
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  FOREIGN KEY (farmerAccountID) REFERENCES FarmerAccounts(farmerAccountID),
+  FOREIGN KEY (generatedBy) REFERENCES Users(userID)
 );
+
+-- ── Federation extensions ──
+CREATE TABLE PartnershipRequests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  coopName VARCHAR(255),
+  contactPerson VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(255),
+  message TEXT,
+  status VARCHAR(255) DEFAULT 'pending',
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
+);
+
+CREATE TABLE Notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  recipientRole VARCHAR(255),
+  recipientID INT,
+  type VARCHAR(255),
+  message VARCHAR(255),
+  referenceId INT,
+  isRead TINYINT(1) DEFAULT 0,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
+);
+
+-- Performance indexes (migration: add-database-optimizations, add-db-optimization-v2)
+CREATE INDEX idx_user_email ON Users(email);
+CREATE INDEX idx_farmer_name ON Farmers(lastName, firstName);
+CREATE INDEX idx_buyer_order_status_date ON BuyerOrders(status, orderDate);
+CREATE INDEX idx_sales_farmer_date ON SalesRecords(farmerAccountID, transactionDate);
+CREATE INDEX idx_farmer_accounts_farmer_coop ON FarmerAccounts(farmerID, primaryCoopID);
+```
+
+**Database views** (read-only reporting):
+
+| View | Purpose |
+| :---- | :---- |
+| `vw_farmer_ledger_summary` | Per-account gross sales, commissions, share capital, outstanding loans |
+| `vw_admin_dashboard_stats` | Federation totals: cooperatives, farmers, pending orders, sales volume |
+| `vw_coop_dashboard_stats` | Per-cooperative dashboard metrics |
+
+---
+
+## **B. Database Implementation (Programmability)** {#b-database-implementation-programmability}
+
+*Advanced logic using stored procedures, triggers, and scheduled events. Source files: `20260515183003-add-database-optimizations.js`, `20260516000000-create-sp-register-farmer-member.js`, `20260516003421-create-notification-triggers.js`, `20260516093000-add-db-optimization-v2.js`.*
+
+### **i. Stored Procedures (Data Transactions)** {#i-stored-procedures-data-transactions}
+
+| Procedure | Purpose | Example call |
+| :---- | :---- | :---- |
+| `sp_register_farmer_member` | Atomic registration: User → Farmer → FarmerCooperative → FarmerAccount | `CALL sp_register_farmer_member(3, 'email@farmer.ph', '$hash', 'Juan', NULL, 'Dela Cruz', NULL, 'Farm', 'Pili', 'San Agustin', 1);` |
+| `sp_complete_delivery` | Legacy delivery completion with proportional SalesRecords | `CALL sp_complete_delivery(1);` |
+| `sp_complete_delivery_v2` | Delivery completion: SalesRecords + FeeRecords (fed/coop/capital), updates order status | `CALL sp_complete_delivery_v2(1);` |
+| `sp_refresh_loan_statuses` | Recomputes outstanding balance and loan status for one account | `CALL sp_refresh_loan_statuses(1);` |
+| `sp_get_account_ledger_summary` | Period-filtered ledger totals for one farmer account | `CALL sp_get_account_ledger_summary(1, '2026-01-01', '2026-12-31');` |
+| `sp_build_coop_ledger_summary` | Cooperative-wide ledger rollup for all member accounts | `CALL sp_build_coop_ledger_summary(3, NULL, NULL);` |
+| `sp_generate_statement` | Inserts a PrintedStatements snapshot (requires `@generated_by`) | `SET @generated_by = 2; CALL sp_generate_statement(1, '2026-01-01', '2026-06-30');` |
+
+**`sp_register_farmer_member`** — wraps four inserts in one transaction with `ROLLBACK` on error:
+
+```sql
+CREATE PROCEDURE sp_register_farmer_member (
+  IN v_roleID INT, IN v_email VARCHAR(255), IN v_password_hash VARCHAR(255),
+  IN v_firstName VARCHAR(100), IN v_middleName VARCHAR(100), IN v_lastName VARCHAR(100),
+  IN v_suffixName VARCHAR(50), IN v_farmName VARCHAR(255),
+  IN v_municipality VARCHAR(40), IN v_barangay VARCHAR(40), IN v_primaryCoopID INT
+)
+BEGIN
+  DECLARE v_userID INT; DECLARE v_farmerID INT;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;
+  START TRANSACTION;
+  INSERT INTO Users (roleID, email, password_hash, isDeleted, createdAt, updatedAt)
+    VALUES (v_roleID, v_email, v_password_hash, 0, NOW(), NOW());
+  SET v_userID = LAST_INSERT_ID();
+  INSERT INTO Farmers (userID, firstName, middleName, lastName, suffixName, farmName,
+    municipality, barangay, isDeleted, createdAt, updatedAt)
+    VALUES (v_userID, v_firstName, v_middleName, v_lastName, v_suffixName, v_farmName,
+    v_municipality, v_barangay, 0, NOW(), NOW());
+  SET v_farmerID = LAST_INSERT_ID();
+  INSERT INTO FarmerCooperatives (farmerID, primaryCoopID, joinedDate, status, createdAt, updatedAt)
+    VALUES (v_farmerID, v_primaryCoopID, NOW(), 'active', NOW(), NOW());
+  INSERT INTO FarmerAccounts (farmerID, primaryCoopID, createdDate, status, createdAt, updatedAt)
+    VALUES (v_farmerID, v_primaryCoopID, NOW(), 'Pending', NOW(), NOW());
+  COMMIT;
+END;
+```
+
+**`sp_complete_delivery`** — legacy procedure (superseded by v2; creates SalesRecords only):
+
+```sql
+CREATE PROCEDURE sp_complete_delivery (IN p_deliveryID INT)
+BEGIN
+  DECLARE v_totalAmount DECIMAL(12,2);
+  DECLARE v_fedRate DECIMAL(5,2);
+  DECLARE v_coopRate DECIMAL(5,2);
+  DECLARE v_totalDelivered INT;
+
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+
+  START TRANSACTION;
+
+  SELECT totalTransactionAmount, commissionRateFederation, commissionRateCoop
+    INTO v_totalAmount, v_fedRate, v_coopRate
+  FROM DeliveryRecords WHERE deliveryID = p_deliveryID;
+
+  SELECT COALESCE(SUM(ff.quantityCommitted), 1) INTO v_totalDelivered
+  FROM FarmerFulfillments ff
+  JOIN CoopAssignments ca ON ff.assignmentID = ca.assignmentID
+  JOIN DeliveryRecords dr ON ca.orderID = dr.orderID
+  WHERE dr.deliveryID = p_deliveryID AND ff.status = 'delivered';
+
+  INSERT INTO SalesRecords (farmerAccountID, deliveryID, grossAmount, commissionAmount, netAmount, transactionDate, remarks, createdAt, updatedAt)
+  SELECT
+    fa.farmerAccountID,
+    p_deliveryID,
+    (ff.quantityCommitted / v_totalDelivered) * v_totalAmount AS grossAmount,
+    ((ff.quantityCommitted / v_totalDelivered) * v_totalAmount) * ((v_fedRate + v_coopRate) / 100) AS commissionAmount,
+    ((ff.quantityCommitted / v_totalDelivered) * v_totalAmount) * (1 - ((v_fedRate + v_coopRate) / 100)) AS netAmount,
+    CURDATE(),
+    'Auto-generated from Delivery',
+    NOW(),
+    NOW()
+  FROM FarmerFulfillments ff
+  JOIN CoopAssignments ca ON ff.assignmentID = ca.assignmentID
+  JOIN DeliveryRecords dr ON ca.orderID = dr.orderID
+  JOIN FarmerAccounts fa ON fa.farmerID = ff.farmerID AND fa.primaryCoopID = ca.primaryCoopID
+  WHERE dr.deliveryID = p_deliveryID AND ff.status = 'delivered';
+
+  UPDATE DeliveryRecords SET status = 'delivered' WHERE deliveryID = p_deliveryID;
+
+  COMMIT;
+END;
+```
+
+**`sp_complete_delivery_v2`** — primary FarmLedger transaction procedure:
+
+```sql
+CREATE PROCEDURE sp_complete_delivery_v2 (IN p_delivery_id INT)
+BEGIN
+  DECLARE v_total_amount DECIMAL(12,2);
+  DECLARE v_fed_rate DECIMAL(12,6);
+  DECLARE v_coop_rate DECIMAL(12,6);
+  DECLARE v_order_id INT;
+  DECLARE v_delivery_date DATE;
+  DECLARE v_total_qty DECIMAL(12,4);
+  DECLARE v_status VARCHAR(32);
+
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+
+  START TRANSACTION;
+
+  SELECT totalTransactionAmount, commissionRateFederation, commissionRateCoop,
+         orderID, deliveryDate, status
+    INTO v_total_amount, v_fed_rate, v_coop_rate, v_order_id, v_delivery_date, v_status
+  FROM DeliveryRecords
+  WHERE deliveryID = p_delivery_id
+  FOR UPDATE;
+
+  IF v_order_id IS NULL THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Delivery not found';
+  END IF;
+
+  IF v_status <> 'pending' THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Delivery is not in pending status';
+  END IF;
+
+  SET v_delivery_date = COALESCE(v_delivery_date, CURDATE());
+
+  SELECT COALESCE(SUM(ff.quantityCommitted), 0) INTO v_total_qty
+  FROM FarmerFulfillments ff
+  JOIN CoopAssignments ca ON ff.assignmentID = ca.assignmentID
+  WHERE ca.orderID = v_order_id AND ff.status IN ('confirmed', 'ready');
+
+  INSERT INTO FarmerAccounts (farmerID, primaryCoopID, createdDate, status, updatedAt)
+  SELECT DISTINCT ff.farmerID, ca.primaryCoopID, NOW(), 'active', NOW()
+  FROM FarmerFulfillments ff
+  JOIN CoopAssignments ca ON ff.assignmentID = ca.assignmentID
+  WHERE ca.orderID = v_order_id AND ff.status IN ('confirmed', 'ready')
+    AND NOT EXISTS (
+      SELECT 1 FROM FarmerAccounts fa
+      WHERE fa.farmerID = ff.farmerID AND fa.primaryCoopID = ca.primaryCoopID
+    );
+
+  IF v_total_qty > 0 THEN
+    INSERT INTO SalesRecords (farmerAccountID, deliveryID, grossAmount, commissionAmount, netAmount, transactionDate, remarks, createdAt, updatedAt)
+    SELECT
+      fa.farmerAccountID, p_delivery_id,
+      ROUND((ff.quantityCommitted / v_total_qty) * v_total_amount, 2),
+      ROUND((ff.quantityCommitted / v_total_qty) * v_total_amount * (v_fed_rate + v_coop_rate), 2),
+      ROUND((ff.quantityCommitted / v_total_qty) * v_total_amount * (1 - (v_fed_rate + v_coop_rate)), 2),
+      v_delivery_date, CONCAT('Auto-generated from delivery DEL-', p_delivery_id), NOW(), NOW()
+    FROM FarmerFulfillments ff
+    JOIN CoopAssignments ca ON ff.assignmentID = ca.assignmentID
+    JOIN FarmerAccounts fa ON fa.farmerID = ff.farmerID AND fa.primaryCoopID = ca.primaryCoopID
+    WHERE ca.orderID = v_order_id AND ff.status IN ('confirmed', 'ready');
+
+    INSERT INTO FeeRecords (farmerAccountID, salesRecordID, feeType, rate, amount, status, createdAt, updatedAt)
+    SELECT sr.farmerAccountID, sr.salesRecordID, 'federationFee', v_fed_rate, ROUND(sr.grossAmount * v_fed_rate, 2), 'recorded', NOW(), NOW()
+    FROM SalesRecords sr WHERE sr.deliveryID = p_delivery_id;
+
+    INSERT INTO FeeRecords (farmerAccountID, salesRecordID, feeType, rate, amount, status, createdAt, updatedAt)
+    SELECT sr.farmerAccountID, sr.salesRecordID, 'coopFee', v_coop_rate, ROUND(sr.grossAmount * v_coop_rate, 2), 'recorded', NOW(), NOW()
+    FROM SalesRecords sr WHERE sr.deliveryID = p_delivery_id;
+
+    INSERT INTO FeeRecords (farmerAccountID, salesRecordID, feeType, rate, amount, status, createdAt, updatedAt)
+    SELECT sr.farmerAccountID, sr.salesRecordID, 'capitalContribution', 0, 0, 'recorded', NOW(), NOW()
+    FROM SalesRecords sr WHERE sr.deliveryID = p_delivery_id;
+
+    INSERT INTO FeeRecords (farmerAccountID, salesRecordID, feeType, rate, amount, status, createdAt, updatedAt)
+    SELECT sr.farmerAccountID, sr.salesRecordID, 'capitalRetention', 0, 0, 'recorded', NOW(), NOW()
+    FROM SalesRecords sr WHERE sr.deliveryID = p_delivery_id;
+  END IF;
+
+  UPDATE DeliveryRecords SET status = 'delivered', deliveryDate = v_delivery_date, updatedAt = NOW()
+  WHERE deliveryID = p_delivery_id;
+
+  IF NOT EXISTS (SELECT 1 FROM DeliveryRecords WHERE orderID = v_order_id AND status <> 'delivered') THEN
+    UPDATE BuyerOrders SET status = 'completed', updatedAt = NOW() WHERE orderID = v_order_id;
+  END IF;
+
+  COMMIT;
+END;
+```
+
+**`sp_refresh_loan_statuses`**:
+
+```sql
+CREATE PROCEDURE sp_refresh_loan_statuses (IN p_farmer_account_id INT)
+BEGIN
+  UPDATE LoanRecords
+  SET
+    outstandingBalance = loanAmount - amountRepaid,
+    status = CASE
+      WHEN (loanAmount - amountRepaid) <= 0.001 THEN 'paid'
+      WHEN dueDate < CURDATE() AND (loanAmount - amountRepaid) > 0 THEN 'overdue'
+      WHEN amountRepaid > 0 AND (loanAmount - amountRepaid) > 0 THEN 'partial'
+      ELSE 'active'
+    END
+  WHERE farmerAccountID = p_farmer_account_id;
+END;
+```
+
+**`sp_get_account_ledger_summary`**:
+
+```sql
+CREATE PROCEDURE sp_get_account_ledger_summary (
+  IN p_farmer_account_id INT,
+  IN p_start DATE,
+  IN p_end DATE
+)
+BEGIN
+  SELECT
+    p_farmer_account_id AS farmerAccountID,
+    (SELECT COALESCE(SUM(sr.grossAmount), 0) FROM SalesRecords sr
+      WHERE sr.farmerAccountID = p_farmer_account_id
+        AND (p_start IS NULL OR p_end IS NULL OR
+          (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    ) AS totalGrossSales,
+    (SELECT COALESCE(SUM(sr.commissionAmount), 0) FROM SalesRecords sr
+      WHERE sr.farmerAccountID = p_farmer_account_id
+        AND (p_start IS NULL OR p_end IS NULL OR
+          (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    ) AS totalCommission,
+    (SELECT COALESCE(SUM(sr.netAmount), 0) FROM SalesRecords sr
+      WHERE sr.farmerAccountID = p_farmer_account_id
+        AND (p_start IS NULL OR p_end IS NULL OR
+          (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    ) AS netBalance,
+    (SELECT COALESCE(SUM(fr.amount), 0) FROM FeeRecords fr
+      JOIN SalesRecords sr ON fr.salesRecordID = sr.salesRecordID
+      WHERE fr.farmerAccountID = p_farmer_account_id
+        AND fr.feeType IN ('capitalContribution', 'capitalRetention')
+        AND (p_start IS NULL OR p_end IS NULL OR
+          (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    ) AS totalShareCapital,
+    (SELECT COALESCE(SUM(lr.outstandingBalance), 0) FROM LoanRecords lr
+      WHERE lr.farmerAccountID = p_farmer_account_id AND lr.outstandingBalance > 0
+    ) AS outstandingLoans;
+END;
+```
+
+**`sp_build_coop_ledger_summary`**:
+
+```sql
+CREATE PROCEDURE sp_build_coop_ledger_summary (
+  IN p_primary_coop_id INT,
+  IN p_start DATE,
+  IN p_end DATE
+)
+BEGIN
+  SELECT
+    fa.farmerAccountID,
+    fa.status AS accountStatus,
+    f.farmerID,
+    CONCAT(f.firstName, ' ', IFNULL(f.middleName, ''),
+      CASE WHEN f.middleName IS NULL OR f.middleName = '' THEN '' ELSE ' ' END,
+      f.lastName, IFNULL(CONCAT(' ', f.suffixName), '')) AS farmerName,
+    COALESCE(sa.totalGrossSales, 0) AS totalGrossSales,
+    COALESCE(sa.totalCommission, 0) AS totalCommission,
+    COALESCE(sa.netBalance, 0) AS netBalance,
+    COALESCE(sc.totalShareCapital, 0) AS totalShareCapital,
+    COALESCE(lo.outstandingLoans, 0) AS outstandingLoans
+  FROM FarmerAccounts fa
+  JOIN Farmers f ON fa.farmerID = f.farmerID
+  LEFT JOIN (
+    SELECT sr.farmerAccountID,
+      SUM(sr.grossAmount) AS totalGrossSales,
+      SUM(sr.commissionAmount) AS totalCommission,
+      SUM(sr.netAmount) AS netBalance
+    FROM SalesRecords sr
+    WHERE (p_start IS NULL OR p_end IS NULL OR
+      (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    GROUP BY sr.farmerAccountID
+  ) sa ON sa.farmerAccountID = fa.farmerAccountID
+  LEFT JOIN (
+    SELECT fr.farmerAccountID, SUM(fr.amount) AS totalShareCapital
+    FROM FeeRecords fr
+    JOIN SalesRecords sr ON fr.salesRecordID = sr.salesRecordID
+    WHERE fr.feeType IN ('capitalContribution', 'capitalRetention')
+      AND (p_start IS NULL OR p_end IS NULL OR
+        (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY)))
+    GROUP BY fr.farmerAccountID
+  ) sc ON sc.farmerAccountID = fa.farmerAccountID
+  LEFT JOIN (
+    SELECT farmerAccountID, SUM(outstandingBalance) AS outstandingLoans
+    FROM LoanRecords WHERE outstandingBalance > 0
+    GROUP BY farmerAccountID
+  ) lo ON lo.farmerAccountID = fa.farmerAccountID
+  WHERE fa.primaryCoopID = p_primary_coop_id AND f.isDeleted = 0
+  ORDER BY farmerName ASC;
+END;
+```
+
+**`sp_generate_statement`**:
+
+```sql
+CREATE PROCEDURE sp_generate_statement (
+  IN p_farmer_account_id INT,
+  IN p_start DATE,
+  IN p_end DATE
+)
+BEGIN
+  DECLARE v_gross DECIMAL(12,2);
+  DECLARE v_commission DECIMAL(12,2);
+  DECLARE v_net DECIMAL(12,2);
+  DECLARE v_share DECIMAL(12,2);
+  DECLARE v_loans DECIMAL(12,2);
+
+  IF @generated_by IS NULL THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'generatedBy is required';
+  END IF;
+
+  CALL sp_refresh_loan_statuses(p_farmer_account_id);
+
+  SELECT COALESCE(SUM(sr.grossAmount), 0), COALESCE(SUM(sr.commissionAmount), 0), COALESCE(SUM(sr.netAmount), 0)
+    INTO v_gross, v_commission, v_net
+  FROM SalesRecords sr
+  WHERE sr.farmerAccountID = p_farmer_account_id
+    AND (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY));
+
+  SELECT COALESCE(SUM(fr.amount), 0) INTO v_share
+  FROM FeeRecords fr
+  JOIN SalesRecords sr ON fr.salesRecordID = sr.salesRecordID
+  WHERE fr.farmerAccountID = p_farmer_account_id
+    AND fr.feeType IN ('capitalContribution', 'capitalRetention')
+    AND (sr.transactionDate >= p_start AND sr.transactionDate < DATE_ADD(p_end, INTERVAL 1 DAY));
+
+  SELECT COALESCE(SUM(lr.outstandingBalance), 0) INTO v_loans
+  FROM LoanRecords lr
+  WHERE lr.farmerAccountID = p_farmer_account_id AND lr.outstandingBalance > 0;
+
+  INSERT INTO PrintedStatements (
+    farmerAccountID, periodStart, periodEnd, generatedBy, generatedDate,
+    totalGrossSales, totalCommission, totalShareCapital, totalLoans, netBalance, createdAt, updatedAt
+  ) VALUES (
+    p_farmer_account_id, p_start, p_end, @generated_by, NOW(),
+    v_gross, v_commission, v_share, v_loans, v_net, NOW(), NOW()
+  );
+
+  SELECT * FROM PrintedStatements WHERE printedStatementID = LAST_INSERT_ID();
+END;
+```
+
+*All 7 stored procedures are listed above with full source. Canonical copies live in `backend/migrations/`.*
+
+### **ii. Triggers (Automation / Audit)** {#ii-triggers-automation-audit}
+
+| Trigger | Event | Action |
+| :---- | :---- | :---- |
+| `tr_after_fee_insert` | AFTER INSERT on `FeeRecords` | Adds `capitalContribution` / `capitalRetention` amounts to `FarmerAccounts.totalShareCapital` |
+| `tr_before_loan_update` | BEFORE UPDATE on `LoanRecords` | Sets `outstandingBalance = loanAmount - amountRepaid`; status → `paid` when balance ≤ 0 |
+| `after_partnership_request_insert` | AFTER INSERT on `PartnershipRequests` | Notifies FACCS Admin of new partnership inquiry |
+| `after_delivery_update_to_delivered` | AFTER UPDATE on `DeliveryRecords` | Notifies Admin when status becomes `delivered` |
+| `after_coop_assignment_insert` | AFTER INSERT on `CoopAssignments` | Notifies Coop Officer (`recipientID` = `primaryCoopID`) of new assignment |
+
+```sql
+-- Share capital automation
+CREATE TRIGGER tr_after_fee_insert
+AFTER INSERT ON FeeRecords FOR EACH ROW
+BEGIN
+  IF NEW.feeType IN ('capitalContribution', 'capitalRetention') THEN
+    UPDATE FarmerAccounts
+    SET totalShareCapital = totalShareCapital + NEW.amount
+    WHERE farmerAccountID = NEW.farmerAccountID;
+  END IF;
+END;
+
+-- Loan balance automation
+CREATE TRIGGER tr_before_loan_update
+BEFORE UPDATE ON LoanRecords FOR EACH ROW
+BEGIN
+  SET NEW.outstandingBalance = NEW.loanAmount - NEW.amountRepaid;
+  IF NEW.outstandingBalance <= 0 THEN SET NEW.status = 'paid'; END IF;
+END;
+
+-- Admin notification on partnership request
+CREATE TRIGGER after_partnership_request_insert
+AFTER INSERT ON PartnershipRequests FOR EACH ROW
+BEGIN
+  INSERT INTO Notifications (recipientRole, type, message, referenceId, isRead, createdAt, updatedAt)
+  VALUES ('Admin', 'partnership_request',
+    CONCAT('New partnership inquiry from ', NEW.coopName), NEW.id, 0, NOW(), NOW());
+END;
+
+-- Admin notification when delivery is marked delivered
+CREATE TRIGGER after_delivery_update_to_delivered
+AFTER UPDATE ON DeliveryRecords FOR EACH ROW
+BEGIN
+  IF NEW.status = 'delivered' AND OLD.status != 'delivered' THEN
+    INSERT INTO Notifications (recipientRole, type, message, referenceId, isRead, createdAt, updatedAt)
+    VALUES ('Admin', 'delivery_confirmation',
+      CONCAT('Delivery #', NEW.deliveryID, ' is pending confirmation.'), NEW.deliveryID, 0, NOW(), NOW());
+  END IF;
+END;
+
+-- Coop officer notification on new assignment
+CREATE TRIGGER after_coop_assignment_insert
+AFTER INSERT ON CoopAssignments FOR EACH ROW
+BEGIN
+  INSERT INTO Notifications (recipientRole, recipientID, type, message, referenceId, isRead, createdAt, updatedAt)
+  VALUES ('Officer', NEW.primaryCoopID, 'coop_assignment',
+    'A new buyer order has been assigned to your cooperative.', NEW.assignmentID, 0, NOW(), NOW());
+END;
+```
+
+*All 5 triggers are listed above with full source.*
+
+**Scheduled events:**
+
+| Event | Schedule | Action |
+| :---- | :---- | :---- |
+| `ev_daily_overdue_loans` | Daily | Marks loans past `dueDate` as `overdue` |
+| `ev_monthly_soft_delete_purge` | Monthly | Purges aged audit/soft-deleted records |
+
+```sql
+CREATE EVENT ev_daily_overdue_loans
+ON SCHEDULE EVERY 1 DAY STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY)
+DO
+BEGIN
+  UPDATE LoanRecords
+  SET status = 'overdue'
+  WHERE dueDate < CURDATE() AND outstandingBalance > 0 AND status != 'overdue';
+END;
+
+CREATE EVENT ev_monthly_soft_delete_purge
+ON SCHEDULE EVERY 1 MONTH
+DO
+BEGIN
+  DELETE FROM Farmers WHERE isDeleted = 1 AND updatedAt < DATE_SUB(NOW(), INTERVAL 30 DAY);
+  DELETE FROM BuyerOrders WHERE status = 'cancelled' AND updatedAt < DATE_SUB(NOW(), INTERVAL 30 DAY);
+END;
+```
+
+---
+
+## **C. SQL Scripts (DML — Data Manipulation Language)** {#c-sql-scripts-dml}
+
+*Sample data for testing, maintained as Sequelize seeders in `backend/seeders/`. Run with `npx sequelize-cli db:seed:all`. All development accounts use password `password` (bcrypt-hashed).*
+
+```sql
+-- Roles
+INSERT INTO Roles (roleID, roleName, createdAt, updatedAt) VALUES
+(1, 'FACCS Admin', '2026-05-16', '2026-05-16'),
+(2, 'Coop Officer', '2026-05-16', '2026-05-16'),
+(3, 'Farmer', '2026-05-16', '2026-05-16');
+
+-- Users (subset — full seed has 32 rows: 1 admin, 19 officers, 12 farmers)
+INSERT INTO Users (userID, roleID, email, password_hash, isDeleted, createdAt, updatedAt) VALUES
+(1, 1, 'faccs.admin@faccs.ph', '<bcrypt_hash>', 0, '2026-05-16', '2026-05-16'),
+(2, 2, 'cmpc.officer@faccs.ph', '<bcrypt_hash>', 0, '2026-05-16', '2026-05-16'),
+(21, 3, 'jerico.gatpandan@farmer.ph', '<bcrypt_hash>', 0, '2026-05-16', '2026-05-16'),
+(22, 3, 'thatiana.calma@farmer.ph', '<bcrypt_hash>', 0, '2026-05-16', '2026-05-16'),
+(23, 3, 'frence.triste@farmer.ph', '<bcrypt_hash>', 0, '2026-05-16', '2026-05-16');
+
+-- Primary cooperatives (19 FACCS member coops — sample of 3)
+INSERT INTO PrimaryCooperatives
+  (primaryCoopID, userID, coopName, barangay, municipality, phone, registrationNumber, isDeleted, createdAt, updatedAt)
+VALUES
+(1, 2, 'CamSur Multi-Purpose Cooperative (CMPC)', 'Poblacion', 'Pili', '09171234567', 'CDA-9520-2026-001', 0, '2026-01-10', '2026-01-10'),
+(2, 3, 'Magarao Multi-Purpose Cooperative (MMPC)', 'San Miguel', 'Magarao', '09182345678', 'CDA-9520-2026-002', 0, '2026-01-10', '2026-01-10'),
+(3, 4, 'San Agustin-San Ramon Agrarian Reform Farmers Cooperative (SARFC)', 'San Agustin', 'Bula', '09193456789', 'CDA-9520-2026-003', 0, '2026-01-10', '2026-01-10');
+
+-- Farmers (12 seeded — sample of 3)
+INSERT INTO Farmers
+  (farmerID, userID, firstName, middleName, lastName, farmName, municipality, barangay, isDeleted, createdAt, updatedAt)
+VALUES
+(1, 21, 'Jerico', 'C.', 'Gatpandan', 'Gatpandan Integrated Farm', 'Pili', 'San Agustin', 0, '2026-02-10', '2026-02-10'),
+(2, 22, 'Thatiana Nicole', 'R.', 'Calma', 'Calma Family Farm', 'Bula', 'Sagrada', 0, '2026-02-12', '2026-02-12'),
+(3, 23, 'Frence Sherwin', 'S.', 'Triste', 'Triste Agri Cooperative Farm', 'Bula', 'San Roque', 0, '2026-02-14', '2026-02-14');
+
+-- Crop types
+INSERT INTO CropTypes (cropTypeID, cropName, category, createdAt, updatedAt) VALUES
+(1, 'Rice', 'Grain', '2026-05-16', '2026-05-16'),
+(2, 'Corn', 'Grain', '2026-05-16', '2026-05-16'),
+(3, 'Coconut', 'Plantation Crop', '2026-05-16', '2026-05-16'),
+(4, 'Vegetables', 'Horticulture', '2026-05-16', '2026-05-16'),
+(5, 'Pandan', 'Industrial Crop', '2026-05-16', '2026-05-16');
+
+-- Buyer orders
+INSERT INTO BuyerOrders
+  (orderID, managedBy, buyerName, buyerCompany, buyerContact, cropTypeID, requestedQuantity, urgencyLevel, orderDate, status, notes, createdAt, updatedAt)
+VALUES
+(1, 1, 'NFA Regional Office', 'National Food Authority', '09171110001', 1, 2000, 'high', '2026-05-01', 'delivered', 'May 2026 rice procurement', '2026-05-01', '2026-05-12'),
+(2, 1, 'PhilRice', 'Philippine Rice Research Institute', '09172220002', 1, 1000, 'normal', '2026-05-03', 'assigned', 'Research-grade rice', '2026-05-03', '2026-05-04'),
+(3, 1, 'Biggs Inc.', 'Biggs Diner Chain', '09173330003', 4, 300, 'normal', '2026-05-04', 'pending', 'Fresh vegetables', '2026-05-04', '2026-05-04');
+
+-- Partnership requests
+INSERT INTO PartnershipRequests (coopName, contactPerson, email, phone, message, status, createdAt, updatedAt) VALUES
+('Bicol Rice Farmers Association', 'Ely Buendia', 'ely.buendia@example.com', '09170001111', 'Interested in joining FACCS federation.', 'pending', '2026-05-16', '2026-05-16'),
+('CamSur Organic Growers', 'Rico Blanco', 'rico.blanco@example.com', '09170002222', 'Requesting partnership for organic fertilizer distribution.', 'reviewed', '2026-05-16', '2026-05-16');
+```
+
+**Seeder inventory** (full test dataset):
+
+| Seeder file | Tables populated |
+| :---- | :---- |
+| `seed-roles.js` | Roles (3) |
+| `seed-users.js` | Users (32) |
+| `seed-primary-cooperatives.js` | PrimaryCooperatives (19) |
+| `seed-farmers.js` | Farmers (12) |
+| `seed-crop-types.js` | CropTypes (5) |
+| `seed-products.js` | Products |
+| `seed-farmer-cooperatives.js` | FarmerCooperatives |
+| `seed-farmer-accounts.js` | FarmerAccounts |
+| `seed-buyer-orders.js` | BuyerOrders (5) |
+| `seed-coop-assignments.js` | CoopAssignments |
+| `seed-farmer-fulfillments.js` | FarmerFulfillments |
+| `seed-delivery-records.js` | DeliveryRecords |
+| `seed-sales-records.js` | SalesRecords |
+| `seed-fee-records.js` | FeeRecords |
+| `seed-loan-records.js` | LoanRecords |
+| `seed-printed-statements.js` | PrintedStatements |
+| `seed-partnership-requests.js` | PartnershipRequests (2) |
+| `seed-notifications.js` | Notifications |
 
 # **PICTORIAL DOCUMENTATION** {#pictorial-documentation}
 

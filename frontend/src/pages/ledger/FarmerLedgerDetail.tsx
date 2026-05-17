@@ -22,6 +22,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -51,8 +52,9 @@ import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhp, formatRate } from "../../lib/money";
+import { API_URL } from "../../lib/api";
 
-const LEDGER = "http://localhost:8800/api/ledger";
+const LEDGER = `${API_URL}/api/ledger`;
 
 const FEE_LABELS: Record<string, string> = {
   federationFee: "Federation fee",
@@ -179,6 +181,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
       let url = `${LEDGER}/farmers/me`;
       const params: Record<string, string> = {};
       if (!self) {
+        if (!farmerId) return;
         url = `${LEDGER}/farmers/${farmerId}`;
         if (variant === "admin" && coopIdParam) {
           params.coopId = coopIdParam;
@@ -749,6 +752,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add loan</DialogTitle>
+            <DialogDescription>Record a new loan for this farmer account.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div>
@@ -812,6 +816,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Record repayment</DialogTitle>
+            <DialogDescription>Enter the repayment amount and date.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-2">
             <div>
@@ -854,6 +859,7 @@ export function FarmerLedgerDetail({ variant, self }: FarmerLedgerDetailProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Statement period</DialogTitle>
+            <DialogDescription>Select a date range to generate the farmer statement.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-4">
             <div className="flex flex-col gap-2">

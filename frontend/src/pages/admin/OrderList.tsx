@@ -41,6 +41,7 @@ import {
   X,
 } from "lucide-react";
 
+import { API_URL } from "../../lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 
-const API = "http://localhost:8800/api/orders";
+const API = `${API_URL}/api/orders`;
 
 interface OrderRow {
   orderID: number;

@@ -47,6 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       roleID: DataTypes.INTEGER,
       email: DataTypes.STRING,
       password_hash: DataTypes.STRING,
+      profilePicture: DataTypes.STRING,
       createdAt: DataTypes.DATE,
       isDeleted: DataTypes.BOOLEAN,
     },

@@ -24,7 +24,7 @@ module.exports = {
       {
         userID: 1,
         roleID: 1,
-        email: "faccs.admin@faccs.ph",
+        email: "federation.agricoops.camsur@gmail.com",
         password_hash: hash,
         isDeleted: false,
         createdAt,

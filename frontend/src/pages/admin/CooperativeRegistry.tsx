@@ -48,6 +48,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { API_URL } from "../../lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +56,7 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 
-const API_BASE = "http://localhost:8800/api/cooperatives";
+const API_BASE = `${API_URL}/api/cooperatives`;
 
 interface Cooperative {
   primaryCoopID: number;

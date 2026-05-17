@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { useAuth } from "../../context/AuthContext";
+import { API_URL } from "../../lib/api";
 
 interface AdminStats {
   totalCooperatives: number;
@@ -53,7 +54,7 @@ export function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("asac_token");
-        const res = await axios.get("http://localhost:8800/api/dashboard/admin", {
+        const res = await axios.get(`${API_URL}/api/dashboard/admin`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(res.data.stats);

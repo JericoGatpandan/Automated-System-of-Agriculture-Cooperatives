@@ -12,7 +12,8 @@
       "driver": "MySQL",
       "name": "ASAC",
       "database": "asac_db",
-      "username": "root"
+      "username": "root",
+      "askForPassword": true
     }
   ]
 }

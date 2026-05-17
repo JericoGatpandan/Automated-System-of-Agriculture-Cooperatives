@@ -44,6 +44,7 @@ export async function authenticate(req, res, next) {
       email: user.email,
       roleID: user.roleID,
       role: ROLE_MAP[user.Role.roleName] || user.Role.roleName,
+      profilePicture: user.profilePicture || null,
     };
 
     next();

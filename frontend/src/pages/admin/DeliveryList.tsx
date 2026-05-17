@@ -32,8 +32,9 @@ import {
 } from "../../components/ui/table";
 
 import { Eye, Loader2, Pencil, Plus, Truck } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/deliveries";
+const API = `${API_URL}/api/deliveries`;
 
 interface DeliveryRow {
   deliveryID: number;

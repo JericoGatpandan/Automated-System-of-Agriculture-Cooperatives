@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { toast } from "sonner";
+import { API_URL } from "../../lib/api";
 
 interface PartnershipRequest {
   id: number;
@@ -50,7 +51,7 @@ export function AdminRequests() {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem("asac_token");
-        const res = await axios.get("http://localhost:8800/api/requests", {
+        const res = await axios.get(`${API_URL}/api/requests`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setRequests(res.data);
@@ -67,7 +68,7 @@ export function AdminRequests() {
     try {
       const token = localStorage.getItem("asac_token");
       const newStatus = req.status === "pending" ? "reviewed" : "pending";
-      await axios.put(`http://localhost:8800/api/requests/${req.id}/status`, 
+      await axios.put(`${API_URL}/api/requests/${req.id}/status`, 
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

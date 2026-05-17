@@ -219,3 +219,64 @@
     margin-inline: auto;
   }
 }
+
+/* ── Print styles ─────────────────────────────────────────────── */
+@media print {
+  /* Hide the sidebar, header, toolbar, and non-printable elements */
+  .app-shell aside,
+  .app-shell nav,
+  .app-shell .app-header,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset the margin-left added by the sidebar */
+  .app-shell .ml-64 {
+    margin-left: 0 !important;
+  }
+
+  /* Reset background and fill the page */
+  body,
+  html {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Let the document flow naturally */
+  .ml-64 {
+    margin-left: 0 !important;
+    min-height: auto !important;
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  /* Remove max-width constraints and shadows on the print document */
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:border-none {
+    border: none !important;
+  }
+
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+
+  .print\:rounded-none {
+    border-radius: 0 !important;
+  }
+
+  .print\:mb-0 {
+    margin-bottom: 0 !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1.5cm 2cm;
+  }
+}

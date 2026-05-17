@@ -1,7 +1,20 @@
 import axios from "axios";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -33,8 +46,12 @@ import {
 } from "../../components/ui/table";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhp } from "../../lib/money";
+import { API_URL } from "../../lib/api";
 
-const BASE = "http://localhost:8800/api/ledger";
+const BASE = `${API_URL}/api/ledger`;
+
+const BAR_COLORS = ["#16a34a", "#059669", "#0d9488", "#22c55e", "#10b981", "#6366f1", "#f59e0b", "#ef4444"];
+const PIE_COLORS = ["#16a34a", "#0d9488", "#6366f1", "#f59e0b"];
 
 interface LedgerRow {
   farmerID: number;
@@ -64,6 +81,20 @@ function accountStatusBadge(status: string) {
     >
       {status}
     </Badge>
+  );
+}
+
+function CurrencyTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-white px-3 py-2 shadow-md dark:bg-gray-900 dark:border-gray-700">
+      <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+      {payload.map((p: any, i: number) => (
+        <p key={i} className="text-sm" style={{ color: p.color }}>
+          {p.name}: {formatPhp(p.value)}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -151,8 +182,55 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
+  /* ── Aggregated KPI values ── */
+  const kpi = useMemo(() => {
+    const totals = {
+      gross: 0,
+      commission: 0,
+      shareCapital: 0,
+      loans: 0,
+      netBalance: 0,
+    };
+    for (const r of rows) {
+      totals.gross += r.totalGrossSales;
+      totals.commission += r.totalCommission;
+      totals.shareCapital += r.totalShareCapital;
+      totals.loans += r.outstandingLoans;
+      totals.netBalance += r.netBalance;
+    }
+    return totals;
+  }, [rows]);
+
+  /* ── Chart data: Farmer Earnings Bar Chart ── */
+  const farmerBarData = useMemo(() => {
+    return rows
+      .filter((r) => r.totalGrossSales > 0)
+      .sort((a, b) => b.netBalance - a.netBalance)
+      .slice(0, 10)
+      .map((r) => ({
+        name:
+          r.farmerName.length > 14
+            ? r.farmerName.slice(0, 12) + "…"
+            : r.farmerName,
+        netBalance: r.netBalance,
+        gross: r.totalGrossSales,
+        commission: r.totalCommission,
+      }));
+  }, [rows]);
+
+  /* ── Pie chart: Balance allocation ── */
+  const pieData = useMemo(() => {
+    if (kpi.gross === 0) return [];
+    return [
+      { name: "Net Earnings", value: kpi.netBalance },
+      { name: "Commission", value: kpi.commission },
+      { name: "Share Capital", value: kpi.shareCapital },
+      { name: "Outstanding Loans", value: kpi.loans },
+    ].filter((d) => d.value > 0);
+  }, [kpi]);
+
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="mx-auto flex min-h-screen w-full flex-col px-6 py-8">
         {mode === "admin" && (
           <Button
@@ -167,7 +245,7 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
         )}
 
         <h1 className="text-xl font-bold text-foreground mb-2">
-          Cooperative ledger
+          Cooperative Ledger
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
           {coopName ? (
@@ -177,6 +255,159 @@ export function CooperativeLedgerList({ mode }: CooperativeLedgerListProps) {
           )}
         </p>
 
+        {/* ── KPI Summary Cards ── */}
+        {!loading && rows.length > 0 && (
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Gross Sales</CardDescription>
+                <CardTitle className={`text-lg ${mono}`}>
+                  {formatPhp(kpi.gross)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Commission</CardDescription>
+                <CardTitle className={`text-lg ${mono}`}>
+                  {formatPhp(kpi.commission)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Share Capital</CardDescription>
+                <CardTitle className={`text-lg ${mono}`}>
+                  {formatPhp(kpi.shareCapital)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Outstanding Loans</CardDescription>
+                <CardTitle className={`text-lg ${mono}`}>
+                  {formatPhp(kpi.loans)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Net Balance</CardDescription>
+                <CardTitle className={`text-lg ${mono}`}>
+                  {formatPhp(kpi.netBalance)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+        )}
+
+        {/* ── Charts Row ── */}
+        {!loading && rows.length > 0 && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+            {/* Farmer Earnings Bar Chart */}
+            {farmerBarData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Farmer Earnings Overview
+                  </CardTitle>
+                  <CardDescription>
+                    Top farmers by net balance in this cooperative
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={farmerBarData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="hsl(var(--border))"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 11 }}
+                        stroke="hsl(var(--muted-foreground))"
+                        interval={0}
+                        angle={-20}
+                        textAnchor="end"
+                        height={50}
+                      />
+                      <YAxis
+                        tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}k`}
+                        tick={{ fontSize: 12 }}
+                        stroke="hsl(var(--muted-foreground))"
+                      />
+                      <Tooltip content={<CurrencyTooltip />} />
+                      <Legend />
+                      <Bar
+                        dataKey="gross"
+                        name="Gross Sales"
+                        fill="#16a34a"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="netBalance"
+                        name="Net Balance"
+                        fill="#22c55e"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="commission"
+                        name="Commission"
+                        fill="#0d9488"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Balance Allocation Pie */}
+            {pieData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Balance Allocation
+                  </CardTitle>
+                  <CardDescription>
+                    How the cooperative's gross sales are distributed
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={105}
+                        paddingAngle={3}
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${name} (${(percent * 100).toFixed(1)}%)`
+                        }
+                        labelLine={{
+                          stroke: "hsl(var(--muted-foreground))",
+                        }}
+                      >
+                        {pieData.map((_, i) => (
+                          <Cell
+                            key={i}
+                            fill={PIE_COLORS[i % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => formatPhp(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* ── Filters ── */}
         <Card className="mb-6">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Filters</CardTitle>

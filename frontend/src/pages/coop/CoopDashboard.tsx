@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { useAuth } from "../../context/AuthContext";
+import { API_URL } from "../../lib/api";
 
 interface CoopStats {
   primaryCoopID: number;
@@ -71,7 +72,7 @@ export function CoopDashboard() {
         const coopId = user?.primaryCoopID || 1;
 
         const res = await axios.get(
-          `http://localhost:8800/api/dashboard/coop/${coopId}`,
+          `${API_URL}/api/dashboard/coop/${coopId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },

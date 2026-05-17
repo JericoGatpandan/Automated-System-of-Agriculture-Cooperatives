@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 
+import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
   Eye,
@@ -49,7 +50,7 @@ import {
   Users,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/farmers";
+const API = `${API_URL}/api/farmers`;
 
 interface FarmerRow {
   farmerID: number;
@@ -192,7 +193,7 @@ export function CoopFarmerRegistry() {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-gray-50/50">
+    <div className="ml-64 min-h-screen bg-canvas-50/50">
       <div className="w-full mx-auto px-6 py-8">
         {/* Page header */}
         <div className="flex items-center gap-3 mb-6">
