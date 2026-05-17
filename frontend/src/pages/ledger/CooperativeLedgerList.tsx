@@ -46,8 +46,9 @@ import {
 } from "../../components/ui/table";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhp } from "../../lib/money";
+import { API_URL } from "../../lib/api";
 
-const BASE = "http://localhost:8800/api/ledger";
+const BASE = `${API_URL}/api/ledger`;
 
 const BAR_COLORS = ["#16a34a", "#059669", "#0d9488", "#22c55e", "#10b981", "#6366f1", "#f59e0b", "#ef4444"];
 const PIE_COLORS = ["#16a34a", "#0d9488", "#6366f1", "#f59e0b"];

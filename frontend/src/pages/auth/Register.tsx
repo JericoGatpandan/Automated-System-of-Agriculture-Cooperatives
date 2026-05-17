@@ -7,6 +7,7 @@ import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
 import { MapPin, Phone, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
 export function Register() {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export function Register() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:8800/api/requests", formData);
+      await axios.post(`${API_URL}/api/requests`, formData);
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to submit request. Please try again later.");

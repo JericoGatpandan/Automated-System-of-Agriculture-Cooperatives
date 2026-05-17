@@ -24,8 +24,9 @@ import {
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
 import { ClipboardList, Eye, Loader2 } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/assignments";
+const API = `${API_URL}/api/assignments`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",

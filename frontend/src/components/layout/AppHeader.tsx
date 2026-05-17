@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
+import { API_URL } from "../../lib/api";
 
 interface Notification {
   id: number;
@@ -64,7 +65,7 @@ export function AppHeader({
       try {
         const token = localStorage.getItem("asac_token");
         if (!token) return;
-        const res = await axios.get("http://localhost:8800/api/notifications", {
+        const res = await axios.get(`${API_URL}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(res.data);
@@ -90,7 +91,7 @@ export function AppHeader({
     try {
       const token = localStorage.getItem("asac_token");
       await axios.put(
-        `http://localhost:8800/api/notifications/${notif.id}/read`,
+        `${API_URL}/api/notifications/${notif.id}/read`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -214,7 +215,7 @@ export function AppHeader({
             <Button variant="ghost" className="gap-2 px-2 hover:bg-accent/50">
               {user?.profilePicture ? (
                 <img
-                  src={`http://localhost:8800${user.profilePicture}`}
+                  src={`${API_URL}${user.profilePicture}`}
                   alt="Profile"
                   className="h-7 w-7 rounded-full object-cover border border-border"
                 />

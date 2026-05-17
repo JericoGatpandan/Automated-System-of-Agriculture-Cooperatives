@@ -21,6 +21,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../components/ui/table";
 
+import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -30,9 +31,9 @@ import {
   Trash2,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/orders";
-const ASSIGN_API = "http://localhost:8800/api/assignments";
-const COOP_API = "http://localhost:8800/api/cooperatives";
+const API = `${API_URL}/api/orders`;
+const ASSIGN_API = `${API_URL}/api/assignments`;
+const COOP_API = `${API_URL}/api/cooperatives`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",

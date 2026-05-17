@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
+import { API_URL } from "../lib/api";
 
 export type Role = "Admin" | "Officer" | "Farmer";
 
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In a real implementation, we would verify the token with the backend here.
       // For now, we decode it locally or wait for the backend to provide /me.
       // We'll simulate a fetch for the /me endpoint.
-      axios.get("http://localhost:8800/api/auth/me")
+      axios.get(`${API_URL}/api/auth/me`)
         .then((response) => {
           setUser(response.data.user);
         })

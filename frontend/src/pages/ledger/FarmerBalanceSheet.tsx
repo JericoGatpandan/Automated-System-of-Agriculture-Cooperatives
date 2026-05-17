@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft, Download, Loader2, Printer } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "../../lib/api";
 
-const LEDGER_API = "http://localhost:8800/api/ledger";
+const LEDGER_API = `${API_URL}/api/ledger`;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

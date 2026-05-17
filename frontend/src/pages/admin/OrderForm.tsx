@@ -23,9 +23,10 @@ import {
 import { Textarea } from "../../components/ui/textarea";
 
 import { ChevronLeft, Loader2, ShoppingCart } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/orders";
-const CROP_API = "http://localhost:8800/api/farmers/crop-types";
+const API = `${API_URL}/api/orders`;
+const CROP_API = `${API_URL}/api/farmers/crop-types`;
 
 interface CropType {
   cropTypeID: number;

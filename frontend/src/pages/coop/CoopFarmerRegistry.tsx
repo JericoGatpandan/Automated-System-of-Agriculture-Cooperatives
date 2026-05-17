@@ -37,6 +37,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 
+import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
   Eye,
@@ -49,7 +50,7 @@ import {
   Users,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/farmers";
+const API = `${API_URL}/api/farmers`;
 
 interface FarmerRow {
   farmerID: number;

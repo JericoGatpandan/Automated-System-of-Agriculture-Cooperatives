@@ -42,6 +42,7 @@ import {
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
+import { API_URL } from "../../lib/api";
 import {
   ChevronLeft,
   Plus,
@@ -52,8 +53,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/assignments";
-const FARMER_API = "http://localhost:8800/api/farmers/my-coop";
+const API = `${API_URL}/api/assignments`;
+const FARMER_API = `${API_URL}/api/farmers/my-coop`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",

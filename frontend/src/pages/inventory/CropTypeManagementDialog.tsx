@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Pencil, Plus, Trash2, ChevronLeft, Loader2 } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
 interface CropType {
   cropTypeID: number;
@@ -25,7 +26,7 @@ interface CropTypeManagementDialogProps {
   onSuccess: () => void;
 }
 
-const API_BASE = "http://localhost:8800/api";
+const API_BASE = `${API_URL}/api`;
 const CROP_TYPES_API = `${API_BASE}/products/crop-types`;
 
 const PREDEFINED_CATEGORIES = [

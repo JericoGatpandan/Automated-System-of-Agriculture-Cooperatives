@@ -34,6 +34,7 @@ import {
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { TablePaginationFooter } from "../../components/table-pagination-footer";
 
+import { API_URL } from "../../lib/api";
 import {
   ChevronLeft,
   Pencil,
@@ -43,8 +44,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/deliveries";
-const ORDER_API = "http://localhost:8800/api/orders";
+const API = `${API_URL}/api/deliveries`;
+const ORDER_API = `${API_URL}/api/orders`;
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-50 text-yellow-700 border-yellow-500/50",

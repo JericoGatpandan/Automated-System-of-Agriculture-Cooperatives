@@ -24,6 +24,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Separator } from "../../components/ui/separator";
 
+import { API_URL } from "../../lib/api";
 import {
   AlertTriangle,
   Building2,
@@ -42,7 +43,7 @@ import {
   X,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:8800/api/profile";
+const API_BASE = `${API_URL}/api/profile`;
 
 interface ProfileOrganization {
   type: "cooperative" | "farmer";
@@ -273,7 +274,7 @@ export function ProfilePage() {
                   <div className="h-24 w-24 rounded-full overflow-hidden border-2 border-border bg-muted">
                     {profile.profilePicture ? (
                       <img
-                        src={`http://localhost:8800${profile.profilePicture}`}
+                        src={`${API_URL}${profile.profilePicture}`}
                         alt="Profile"
                         className="h-full w-full object-cover"
                       />

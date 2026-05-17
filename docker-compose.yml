@@ -1,16 +1,55 @@
 services:
   db:
-    image: mysql:latest
+    image: mysql:8.0
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: asac_db
-      MYSQL_USER: jerico
-      MYSQL_PASSWORD: password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8801:8800"
+    environment:
+      NODE_ENV: docker
+      PORT: 8800
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_DATABASE: asac_db
+      JWT_SECRET: asac-docker-jwt-secret-2026
+      JWT_EXPIRES_IN: 1d
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   db_data:
+  backend_uploads:

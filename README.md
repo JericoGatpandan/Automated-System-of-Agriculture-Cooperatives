@@ -4,6 +4,38 @@ ASAC is a full-stack web application built for the Federation of Agriculture Coo
 
 ---
 
+## Quick Start (Docker)
+
+Run the entire application with a single command:
+
+```bash
+docker compose up --build
+```
+
+This starts three containers:
+
+| Service    | URL                     | Description                            |
+| ---------- | ----------------------- | -------------------------------------- |
+| Frontend   | http://localhost:3000   | React app served via Nginx             |
+| Backend    | http://localhost:8801   | Express API (also proxied via Nginx)   |
+| Database   | localhost:3307          | MySQL 8 with persistent volume         |
+
+The backend automatically runs migrations and seeds the database on first launch. Once all containers are healthy, open http://localhost:3000 in your browser.
+
+To stop everything:
+
+```bash
+docker compose down
+```
+
+To stop and remove all data (reset database):
+
+```bash
+docker compose down -v
+```
+
+---
+
 ## Core Modules
 
 1. **Cooperative and Farmer Registry** -- Managing federation cooperatives and farmer memberships with role-based access.
@@ -34,7 +66,9 @@ ASAC is a full-stack web application built for the Federation of Agriculture Coo
 
 ### Infrastructure
 
-- Docker Compose for local MySQL provisioning
+- Docker Compose (full-stack orchestration)
+- Nginx (reverse proxy and static file serving)
+- Named volumes for database and upload persistence
 
 ---
 
@@ -42,23 +76,28 @@ ASAC is a full-stack web application built for the Federation of Agriculture Coo
 
 ```text
 .
-├── backend/          # Express API, Sequelize models, migrations, seeders
-│   ├── config/       # Database configuration
-│   ├── migrations/   # Schema and stored procedure migrations
-│   ├── models/       # Sequelize model definitions
-│   ├── routes/       # API route handlers
-│   ├── seeders/      # Demo data seeders
-│   └── uploads/      # Product image uploads
-├── frontend/         # React application
+├── backend/              # Express API
+│   ├── config/           # Database and environment configuration
+│   ├── middleware/        # JWT auth middleware
+│   ├── migrations/       # Schema and stored procedure migrations
+│   ├── models/           # Sequelize model definitions
+│   ├── routes/           # API route handlers
+│   ├── seeders/          # Demo data seeders
+│   ├── uploads/          # Product images and user avatars
+│   ├── Dockerfile        # Backend container definition
+│   └── index.js          # Express entry point
+├── frontend/             # React application
 │   ├── src/
 │   │   ├── components/   # Reusable UI components (shadcn, layout, etc.)
 │   │   ├── context/      # Auth context provider
-│   │   ├── lib/          # Utilities (theme, money formatting)
+│   │   ├── lib/          # Utilities (API config, theme, formatting)
 │   │   └── pages/        # Route-level page components
-│   └── public/
-├── context/          # Project context, architecture, and progress docs
-├── docker-compose.yml
-├── GEMINI.md         # AI agent entry point and operating rules
+│   ├── public/           # Static assets
+│   ├── nginx.conf        # Nginx config for SPA + API proxy
+│   └── Dockerfile        # Frontend container definition
+├── context/              # Project context, architecture, and progress docs
+├── docker-compose.yml    # Full-stack orchestration
+├── GEMINI.md             # AI agent entry point and operating rules
 └── ASAC - Project-Specification.md
 ```
 
@@ -69,7 +108,7 @@ ASAC is a full-stack web application built for the Federation of Agriculture Coo
 | Domain               | Description                                          |
 | -------------------- | ---------------------------------------------------- |
 | `/api/auth`          | Login and current user session                       |
-| `/api/profile`       | User profile and account management                  |
+| `/api/profile`       | User profile, avatar upload, and account management  |
 | `/api/cooperatives`  | Cooperative CRUD and partnership requests             |
 | `/api/farmers`       | Farmer registry, membership, and cooperative linkage  |
 | `/api/products`      | Product inventory and crop management                |
@@ -85,15 +124,21 @@ ASAC is a full-stack web application built for the Federation of Agriculture Coo
 
 ## Prerequisites
 
+### Docker (recommended)
+
+- Docker Desktop or Docker Engine with Compose v2
+
+### Local Development (without Docker)
+
 - Node.js 20 or later
 - npm
-- MySQL 8 or later (or use the included Docker Compose file)
+- MySQL 8 or later
 
 ---
 
-## Local Setup
+## Local Development Setup (without Docker)
 
-### 1. Clone and install dependencies
+### 1. Install dependencies
 
 ```bash
 # Backend
@@ -105,27 +150,34 @@ cd ../frontend
 npm install
 ```
 
-### 2. Provision the database
+### 2. Configure the database
 
-Option A -- Use Docker Compose (recommended):
+Create the file `backend/.env.development.local`:
 
-```bash
-docker compose up -d
+```env
+PORT=8800
+NODE_ENV=development
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_DATABASE=asac_db
+JWT_SECRET=your_secret
+JWT_EXPIRES_IN=1d
 ```
 
-This starts a MySQL 8 container on port 3306 with database `asac_db`.
+Or start a MySQL container:
 
-Option B -- Use an existing MySQL instance and configure credentials in `backend/config/config.json`.
+```bash
+docker compose up db -d
+```
 
-### 3. Run database migrations and seeders
+### 3. Run migrations and seeders
 
 ```bash
 cd backend
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
 ```
-
-This creates all tables, stored procedures, indexes, and populates demo data (37 sales records, 148 fee records, 17 loans across 15 cooperatives).
 
 ### 4. Start the backend
 
@@ -149,11 +201,11 @@ The application runs at `http://localhost:5173`.
 
 ## Default Seeded Accounts
 
-| Role    | Email                | Password  |
-| ------- | -------------------- | --------- |
-| Admin   | admin@faccs.org      | password  |
-| Officer | officer1@faccs.org   | password  |
-| Farmer  | farmer1@faccs.org    | password  |
+| Role    | Email                                   | Password  |
+| ------- | --------------------------------------- | --------- |
+| Admin   | federation.agricoops.camsur@gmail.com   | password  |
+| Officer | cmpc.officer@faccs.ph                   | password  |
+| Farmer  | farmer1@faccs.ph                        | password  |
 
 ---
 
@@ -174,6 +226,17 @@ The application runs at `http://localhost:5173`.
 | `npm run build`     | Type-check and build for production |
 | `npm run lint`      | Run ESLint                         |
 | `npm run preview`   | Preview production build           |
+
+### Docker
+
+| Command                         | Description                        |
+| ------------------------------- | ---------------------------------- |
+| `docker compose up --build`     | Build and start all services       |
+| `docker compose up -d`         | Start in background (detached)     |
+| `docker compose down`          | Stop all services                  |
+| `docker compose down -v`       | Stop and remove volumes (reset DB) |
+| `docker compose logs -f`       | Follow logs from all services      |
+| `docker compose logs backend`  | View backend logs only             |
 
 ### Database
 
@@ -205,5 +268,7 @@ The application runs at `http://localhost:5173`.
 - FarmLedger with interactive charts (Recharts): monthly trends, revenue distribution, cooperative comparisons
 - Printable farmer balance sheet with print-optimized CSS
 - Product inventory with image upload and automatic compression
+- Profile picture upload with automatic 256x256 resizing
 - Dark mode support
 - Responsive sidebar navigation with collapsible layout
+- Dockerized deployment with single-command startup

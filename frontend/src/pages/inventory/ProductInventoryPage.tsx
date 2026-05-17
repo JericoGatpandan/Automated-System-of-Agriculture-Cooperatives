@@ -55,9 +55,10 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Textarea } from "../../components/ui/textarea";
+import { API_URL } from "../../lib/api";
 
-const API_BASE = "http://localhost:8800/api";
-const API_ORIGIN = "http://localhost:8800";
+const API_BASE = `${API_URL}/api`;
+const API_ORIGIN = API_URL;
 const PRODUCT_API = `${API_BASE}/products`;
 const FARMER_API = `${API_BASE}/farmers`;
 

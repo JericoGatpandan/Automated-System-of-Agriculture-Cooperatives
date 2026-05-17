@@ -25,8 +25,9 @@ import {
 } from "../../components/ui/table";
 
 import { Eye, Loader2, Search, Users } from "lucide-react";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/farmers";
+const API = `${API_URL}/api/farmers`;
 
 interface FarmerRow {
   farmerID: number;

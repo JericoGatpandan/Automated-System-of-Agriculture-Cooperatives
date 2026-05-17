@@ -52,8 +52,9 @@ import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Textarea } from "../../components/ui/textarea";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhp, formatRate } from "../../lib/money";
+import { API_URL } from "../../lib/api";
 
-const LEDGER = "http://localhost:8800/api/ledger";
+const LEDGER = `${API_URL}/api/ledger`;
 
 const FEE_LABELS: Record<string, string> = {
   federationFee: "Federation fee",

@@ -27,6 +27,7 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 
+import { API_URL } from "../../lib/api";
 import {
   Building2,
   Calendar,
@@ -40,7 +41,7 @@ import {
   UserCircle,
 } from "lucide-react";
 
-const API = "http://localhost:8800/api/farmers";
+const API = `${API_URL}/api/farmers`;
 
 interface FarmerDetail {
   farmerID: number;

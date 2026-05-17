@@ -36,9 +36,10 @@ import {
 } from "../../components/ui/table";
 import { useAuth } from "../../context/AuthContext";
 import { formatPhp } from "../../lib/money";
+import { API_URL } from "../../lib/api";
 
-const API = "http://localhost:8800/api/ledger/summary";
-const MONTHLY_API = "http://localhost:8800/api/ledger/summary/monthly";
+const API = `${API_URL}/api/ledger/summary`;
+const MONTHLY_API = `${API_URL}/api/ledger/summary/monthly`;
 
 /* ── Chart palette (green-based with complementary accents) ── */
 const COLORS = {
