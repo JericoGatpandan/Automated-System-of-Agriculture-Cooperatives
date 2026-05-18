@@ -82,30 +82,6 @@ docker compose down -v
 - Nginx (reverse proxy and static file serving)
 - Named volumes for database and upload persistence
 
----
-
-## AI-Assisted Development
-
-This project was built with AI assistance, but the implementation is still driven by the project specification and the context files in this repository.
-
-If you want to use AI to help extend ASAC, follow this workflow:
-
-1. Read `GEMINI.md` first, then check the relevant files under `context/`.
-2. Make one bounded change at a time instead of mixing unrelated features.
-3. Keep role boundaries clear for FACCS Admin, Cooperative Officer, and Farmer views.
-4. Validate the change after editing by running the relevant build, lint, or server command.
-5. Update the progress tracker or related context notes when the scope changes.
-
-Good AI prompts for this repo are specific and task-focused, for example:
-
-- “Update the farmer registry form to support X and keep the current layout.”
-- “Fix the backend assignment logic in one file and explain the exact change.”
-- “Add documentation for this feature and keep it aligned with the existing ASAC workflow.”
-
-For the full operating rules, see [GEMINI.md](GEMINI.md) and [context/ai-workflow-rules.md](context/ai-workflow-rules.md).
-
----
-
 ## Repository Structure
 
 ```text
