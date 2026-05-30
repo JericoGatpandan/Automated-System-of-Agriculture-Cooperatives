@@ -137,7 +137,7 @@
   --danger: #b3261e;
   --info: #2c7a7b;
 
-  --primary-foreground: #181b18;
+  --primary-foreground: #e4e7e4;
   --destructive-foreground: #ffffff;
 
   --chart-1: oklch(0.87 0 0);
@@ -222,6 +222,7 @@
 
 /* ── Print styles ─────────────────────────────────────────────── */
 @media print {
+
   /* Hide the sidebar, header, toolbar, and non-printable elements */
   .app-shell aside,
   .app-shell nav,
