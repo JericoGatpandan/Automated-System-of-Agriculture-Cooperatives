@@ -23,3 +23,8 @@ backend/.env.development.local
 GEMINI.md
 context/
 .agents
+skills-lock.json
+.vscode
+.idea
+.DS_Store
+
